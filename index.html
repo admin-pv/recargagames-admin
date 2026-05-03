@@ -1,0 +1,2256 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Recarga Games · Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── DESIGN SYSTEM ── */
+:root {
+  --bg:       #0d0d14;
+  --bg2:      #13131e;
+  --surface:  #1a1a28;
+  --border:   #252538;
+  --border2:  #2e2e4a;
+  --text:     #e2e2f0;
+  --text2:    #8888a8;
+  --text3:    #4a4a6a;
+  --accent:   #7c6af7;
+  --accent2:  #a89af7;
+  --accent-bg: rgba(124,106,247,.1);
+  --green:    #10b981;
+  --green-bg: rgba(16,185,129,.1);
+  --amber:    #f59e0b;
+  --amber-bg: rgba(245,158,11,.1);
+  --red:      #ef4444;
+  --red-bg:   rgba(239,68,68,.1);
+  --blue:     #3b82f6;
+  --blue-bg:  rgba(59,130,246,.1);
+  --r:8px; --rs:5px;
+  --font-mono: 'JetBrains Mono', monospace;
+  --sidebar-w: 210px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:13px;line-height:1.5;min-height:100vh;overflow:hidden}
+
+/* ── AUTH OVERLAY ── */
+#auth-overlay{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center}
+.auth-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:36px 40px;width:360px}
+.auth-brand{text-align:center;margin-bottom:28px}
+.auth-brand h1{font-size:20px;font-weight:700;letter-spacing:-.4px}
+.auth-brand h1 span{color:var(--accent)}
+.auth-brand p{font-size:11px;color:var(--text2);margin-top:4px;letter-spacing:.05em}
+.auth-field{margin-bottom:12px}
+.auth-field label{display:block;font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.auth-field input{width:100%;background:var(--surface);border:1px solid var(--border2);border-radius:var(--rs);padding:9px 12px;color:var(--text);font-family:inherit;font-size:13px;outline:none;transition:border-color .15s}
+.auth-field input:focus{border-color:var(--accent)}
+.auth-btn{width:100%;padding:10px;background:var(--accent);color:#fff;border:none;border-radius:var(--rs);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;margin-top:6px;transition:opacity .15s}
+.auth-btn:hover{opacity:.9}
+.auth-err{font-size:11px;color:var(--red);text-align:center;margin-top:8px;min-height:16px}
+.env-tabs{display:flex;gap:6px;margin-bottom:18px}
+.env-tab{flex:1;padding:7px;border:1px solid var(--border2);border-radius:var(--rs);background:none;color:var(--text2);cursor:pointer;font-family:inherit;font-size:11px;font-weight:500;transition:all .15s;text-align:center}
+.env-tab.active{background:var(--accent-bg);border-color:rgba(124,106,247,.4);color:var(--accent2)}
+
+/* ── LAYOUT ── */
+#app{display:flex;height:100vh;display:none}
+
+/* ── SIDEBAR ── */
+.sidebar{width:var(--sidebar-w);background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.sidebar-header{padding:16px 14px 12px;border-bottom:1px solid var(--border)}
+.sidebar-brand{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.brand-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0}
+.sidebar-brand h1{font-size:14px;font-weight:700;letter-spacing:-.3px}
+.sidebar-brand h1 span{color:var(--accent)}
+.ctx-selector{display:flex;flex-direction:column;gap:5px}
+.ctx-select{width:100%;background:var(--surface);border:1px solid var(--border2);border-radius:var(--rs);padding:5px 8px;color:var(--text);font-family:inherit;font-size:11px;outline:none;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238888a8'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+.ctx-label{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px}
+.sidebar-nav{flex:1;padding:8px;overflow-y:auto}
+.nav-group{margin-bottom:2px}
+.nav-group-label{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;padding:8px 8px 4px}
+.nav-btn{display:flex;align-items:center;gap:8px;width:100%;padding:7px 10px;border:none;background:none;color:var(--text2);cursor:pointer;border-radius:var(--rs);font-size:12px;font-family:inherit;text-align:left;transition:all .12s}
+.nav-btn:hover{background:var(--surface);color:var(--text)}
+.nav-btn.active{background:var(--accent-bg);color:var(--accent2);font-weight:500}
+.nav-btn .icon{width:14px;text-align:center;flex-shrink:0;font-size:13px}
+.nav-divider{border:none;border-top:1px solid var(--border);margin:6px 8px}
+.sidebar-footer{padding:12px 14px;border-top:1px solid var(--border)}
+.sidebar-user{font-size:10px;color:var(--text3)}
+.sidebar-user strong{display:block;color:var(--text2);font-size:11px;margin-bottom:1px}
+.env-badge{display:inline-block;font-size:9px;padding:2px 6px;border-radius:3px;margin-top:4px;font-weight:600;letter-spacing:.04em}
+.env-badge.dev{background:var(--amber-bg);color:var(--amber)}
+.env-badge.prod{background:var(--red-bg);color:var(--red)}
+
+/* ── MAIN CONTENT ── */
+.main{flex:1;overflow:hidden;display:flex;flex-direction:column}
+.topbar{height:48px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0}
+.topbar h2{font-size:14px;font-weight:600;flex:1}
+.topbar-actions{display:flex;align-items:center;gap:8px}
+.content{flex:1;overflow-y:auto;padding:20px}
+
+/* ── TAB PANELS ── */
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* ── CARDS ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px}
+.card-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin-bottom:14px}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:20px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px}
+.stat-label{font-size:10px;color:var(--text2);letter-spacing:.04em;text-transform:uppercase;margin-bottom:6px}
+.stat-value{font-size:22px;font-weight:700;line-height:1}
+.stat-value.green{color:var(--green)}
+.stat-value.amber{color:var(--amber)}
+.stat-value.accent{color:var(--accent2)}
+
+/* ── TABLES ── */
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{background:var(--bg2);padding:9px 12px;text-align:left;font-size:10px;font-weight:600;color:var(--text2);letter-spacing:.05em;text-transform:uppercase;border-bottom:1px solid var(--border);white-space:nowrap;position:sticky;top:0;z-index:10}
+thead th.r{text-align:right}
+thead th.c{text-align:center}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
+tbody tr:hover{background:rgba(255,255,255,.015)}
+tbody tr:last-child{border-bottom:none}
+td{padding:8px 12px;vertical-align:middle}
+td.r{text-align:right}
+td.c{text-align:center}
+.mono{font-family:var(--font-mono)}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:var(--rs);font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;border:none;transition:all .12s}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:#6b5ae0}
+.btn-secondary{background:var(--surface);border:1px solid var(--border2);color:var(--text)}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent2)}
+.btn-danger{background:var(--red-bg);border:1px solid rgba(239,68,68,.2);color:var(--red)}
+.btn-sm{padding:4px 9px;font-size:11px}
+
+/* ── BADGES ── */
+.badge{display:inline-block;font-size:10px;font-weight:600;padding:2px 7px;border-radius:3px;letter-spacing:.03em}
+.badge-green{background:var(--green-bg);color:var(--green)}
+.badge-amber{background:var(--amber-bg);color:var(--amber)}
+.badge-red{background:var(--red-bg);color:var(--red)}
+.badge-blue{background:var(--blue-bg);color:var(--blue)}
+.badge-accent{background:var(--accent-bg);color:var(--accent2)}
+
+/* ── TOGGLE ── */
+.toggle{position:relative;width:32px;height:18px;cursor:pointer}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:var(--border2);border-radius:18px;transition:.2s;border:1px solid var(--border)}
+.toggle-slider:before{content:'';position:absolute;width:12px;height:12px;left:2px;top:2px;background:var(--text3);border-radius:50%;transition:.2s}
+.toggle input:checked + .toggle-slider{background:rgba(16,185,129,.2);border-color:var(--green)}
+.toggle input:checked + .toggle-slider:before{transform:translateX(14px);background:var(--green)}
+
+/* ── FORMS ── */
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:11px;font-weight:500;color:var(--text2);margin-bottom:5px}
+.form-group input,.form-group select,.form-group textarea{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:var(--rs);padding:8px 10px;color:var(--text);font-family:inherit;font-size:13px;outline:none;transition:border-color .15s}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--accent)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-row.cols3{grid-template-columns:1fr 1fr 1fr}
+
+/* ── NOTIFICATIONS ── */
+.notif{position:fixed;bottom:20px;right:20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:10px 16px;font-size:12px;display:flex;align-items:center;gap:8px;box-shadow:0 4px 24px rgba(0,0,0,.4);transform:translateY(80px);opacity:0;transition:all .25s;z-index:9000;max-width:300px}
+.notif.show{transform:translateY(0);opacity:1}
+.notif.ok{border-left:3px solid var(--green)}
+.notif.err{border-left:3px solid var(--red)}
+.notif.info{border-left:3px solid var(--accent)}
+
+/* ── EMPTY STATE ── */
+.empty{padding:48px 20px;text-align:center;color:var(--text2)}
+.empty .icon{font-size:32px;margin-bottom:10px;opacity:.4}
+.empty p{font-size:13px}
+.empty span{font-size:11px;color:var(--text3);margin-top:4px;display:block}
+
+/* ── SUB-TABS ── */
+.sub-tabs{display:flex;gap:2px;margin-bottom:18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:4px}
+.sub-tab{flex:1;padding:7px 12px;border:none;background:none;color:var(--text2);cursor:pointer;font-family:inherit;font-size:12px;border-radius:var(--rs);transition:all .12s;text-align:center}
+.sub-tab:hover{color:var(--text)}
+.sub-tab.active{background:var(--bg);color:var(--text);font-weight:500;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.sub-panel{display:none}
+.sub-panel.active{display:block}
+
+/* ── COMING SOON ── */
+.coming-soon{display:flex;flex-direction:column;align-items:center;justify-content:center;height:300px;gap:8px;color:var(--text3)}
+.coming-soon h3{font-size:15px;color:var(--text2);font-weight:600}
+.coming-soon p{font-size:12px;max-width:300px;text-align:center;line-height:1.6}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--accent)}
+
+/* ── INLINE SEARCH ── */
+.search-bar{display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.search-input{background:var(--surface);border:1px solid var(--border2);border-radius:var(--rs);padding:7px 10px;color:var(--text);font-family:inherit;font-size:12px;outline:none;min-width:200px}
+.search-input:focus{border-color:var(--accent)}
+.filter-select{background:var(--surface);border:1px solid var(--border2);border-radius:var(--rs);padding:7px 10px;color:var(--text);font-family:inherit;font-size:12px;outline:none;cursor:pointer}
+.count-label{font-size:11px;color:var(--text2);margin-left:auto}
+
+/* SPINNER */
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* MARGIN PILL */
+.margin-pill{display:inline-block;font-size:10px;font-weight:700;padding:2px 6px;border-radius:3px}
+.mp-good{background:rgba(16,185,129,.1);color:var(--green)}
+.mp-ok{background:var(--amber-bg);color:var(--amber)}
+.mp-bad{background:var(--red-bg);color:var(--red)}
+
+/* INLINE PRICE INPUT */
+.price-cell{cursor:pointer;transition:background .1s}
+.price-cell:hover{background:rgba(124,106,247,.05)}
+
+@media(max-width:768px){
+  .sidebar{display:none}
+  .form-row{grid-template-columns:1fr}
+  .form-row.cols3{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- AUTH OVERLAY -->
+<div id="auth-overlay">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <h1>RG·<span>Admin</span></h1>
+      <p>PAINEL DE ADMINISTRAÇÃO · RECARGA GAMES</p>
+    </div>
+    <div class="env-tabs">
+      <button class="env-tab active" onclick="setEnv('dev',this)">Development</button>
+      <button class="env-tab" onclick="setEnv('prod',this)">Production</button>
+    </div>
+    <div class="auth-field">
+      <label>Senha Admin</label>
+      <input type="password" id="lp" placeholder="••••••••" autocomplete="off" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="auth-btn" onclick="doLogin()">→ Entrar</button>
+    <div class="auth-err" id="auth-err"></div>
+  </div>
+</div>
+
+<!-- APP SHELL -->
+<div id="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-brand">
+        <div class="brand-dot"></div>
+        <h1>RG·<span>Admin</span></h1>
+      </div>
+      <div class="ctx-selector">
+        <div>
+          <div class="ctx-label">Marca</div>
+          <select class="ctx-select" id="brandSel" onchange="ctxChange()">
+            <option value="rg">Recarga Games</option>
+            <option value="tu" disabled>Topup.games (em breve)</option>
+            <option value="rj" disabled>Rechargejeux.com (em breve)</option>
+            <option value="rk" disabled>RekargaGames.com (em breve)</option>
+          </select>
+        </div>
+        <div>
+          <div class="ctx-label">País</div>
+          <select class="ctx-select" id="countrySel" onchange="ctxChange()">
+            <option value="br">🇧🇷 Brasil</option>
+            <option value="mx" disabled>🇲🇽 México (em breve)</option>
+            <option value="uy" disabled>🇺🇾 Uruguai (em breve)</option>
+            <option value="co" disabled>🇨🇴 Colômbia (em breve)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-group">
+        <div class="nav-group-label">Geral</div>
+        <button class="nav-btn active" onclick="showTab('dashboard',this)">
+          <span class="icon">📊</span> Dashboard
+        </button>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-label">Catálogo</div>
+        <button class="nav-btn" onclick="showTab('catalogo',this)">
+          <span class="icon">🎮</span> Catálogo & Pricing
+        </button>
+        <button class="nav-btn" onclick="showTab('publicados',this)">
+          <span class="icon">✅</span> Publicados
+        </button>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-label">Site</div>
+        <button class="nav-btn" onclick="showTab('jogos',this)">
+          <span class="icon">🕹️</span> Jogos
+        </button>
+        <button class="nav-btn" onclick="showTab('site',this)">
+          <span class="icon">🎨</span> Conteúdo do Site
+        </button>
+        <button class="nav-btn" onclick="showTab('precos',this)">
+          <span class="icon">🌍</span> Países & Preços
+        </button>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-label">Operações</div>
+        <button class="nav-btn" onclick="showTab('vouchers',this)">
+          <span class="icon">🎟️</span> Vouchers Bônus
+        </button>
+        <button class="nav-btn" onclick="showTab('pedidos',this)">
+          <span class="icon">📦</span> Pedidos
+        </button>
+        <button class="nav-btn" onclick="showTab('monitor',this)">
+          <span class="icon">📡</span> Monitor
+        </button>
+        <button class="nav-btn" onclick="showTab('alertas',this)">
+          <span class="icon">🔔</span> Alertas
+        </button>
+      </div>
+      <hr class="nav-divider">
+      <button class="nav-btn" onclick="showTab('config',this)">
+        <span class="icon">⚙️</span> Config
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <strong id="sf-user">admin@playvision.world</strong>
+        Playvision Inc.
+        <div><span class="env-badge dev" id="sf-env">DEV</span></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <h2 id="tab-title">Dashboard</h2>
+      <div class="topbar-actions" id="topbar-actions"></div>
+    </div>
+    <div class="content">
+
+
+      <!-- ══ DASHBOARD ══ -->
+      <div class="tab-panel active" id="tab-dashboard">
+        <div class="stats-grid" id="dash-stats">
+          <div class="stat-card"><div class="stat-label">SKUs Publicados</div><div class="stat-value accent" id="ds-pub">—</div></div>
+          <div class="stat-card"><div class="stat-label">Total Catálogo</div><div class="stat-value" id="ds-total">—</div></div>
+          <div class="stat-card"><div class="stat-label">Categorias</div><div class="stat-value" id="ds-cats">—</div></div>
+          <div class="stat-card"><div class="stat-label">Vouchers Activos</div><div class="stat-value green" id="ds-vouchers">—</div></div>
+          <div class="stat-card"><div class="stat-label">Pedidos Hoje</div><div class="stat-value" id="ds-orders">—</div></div>
+          <div class="stat-card"><div class="stat-label">Ambiente</div><div class="stat-value amber" id="ds-env">DEV</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div class="card">
+            <div class="card-title">Contexto Activo</div>
+            <div style="font-size:13px;line-height:2">
+              <div><span style="color:var(--text2)">Marca:</span> <strong id="ds-brand">Recarga Games</strong></div>
+              <div><span style="color:var(--text2)">País:</span> <strong id="ds-country">🇧🇷 Brasil</strong></div>
+              <div><span style="color:var(--text2)">Moeda:</span> <strong>BRL (R$)</strong></div>
+              <div><span style="color:var(--text2)">Margem base:</span> <strong>25%</strong></div>
+              <div><span style="color:var(--text2)">Proxy:</span> <strong>api.recargagames.com</strong></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">Acesso Rápido</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <button class="btn btn-secondary" onclick="showTab('catalogo',null)" style="justify-content:flex-start">🎮 Abrir Catálogo & Pricing</button>
+              <button class="btn btn-secondary" onclick="showTab('site',null)" style="justify-content:flex-start">🎨 Gerir Conteúdo do Site</button>
+              <button class="btn btn-secondary" onclick="showTab('publicados',null)" style="justify-content:flex-start">✅ Ver Publicados</button>
+              <a href="https://recargagames.com/br/" target="_blank" class="btn btn-secondary" style="justify-content:flex-start;text-decoration:none">🌐 Ver Loja (BR)</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ CATÁLOGO & PRICING ══ -->
+      <div class="tab-panel" id="tab-catalogo">
+
+        <!-- VIEW 1: GRID DE JOGOS -->
+        <div id="cat-view-games">
+          <div class="search-bar">
+            <input class="search-input" id="cat-game-search" type="text" placeholder="🔍 Buscar jogo..." oninput="catGameFilter()">
+            <span class="count-label"><b id="cat-game-count">0</b> jogos disponíveis</span>
+          </div>
+          <div id="cat-game-state" style="padding:50px;text-align:center">
+            <div class="spinner" style="margin:0 auto 12px"></div>
+            <p style="color:var(--text2)">A carregar jogos…</p>
+          </div>
+          <div id="cat-game-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;max-height:calc(100vh - 200px);overflow-y:auto"></div>
+        </div>
+
+        <!-- VIEW 2: SKUs DE UM JOGO -->
+        <div id="cat-view-skus" style="display:none">
+          <div class="search-bar">
+            <button class="btn btn-secondary btn-sm" onclick="catBackToGames()">← Jogos</button>
+            <select class="filter-select" id="cat-game-sel" onchange="catSwitchGame(this.value)" style="font-weight:600;min-width:160px;color:var(--text)">
+              <option value="">— Seleccionar jogo —</option>
+            </select>
+            <input class="search-input" id="cat-sku-search" type="text" placeholder="🔍 Buscar SKU..." oninput="catSkuFilter()" style="margin-left:auto">
+            <select class="filter-select" id="cat-sku-pub" onchange="catSkuFilter()">
+              <option value="">Todos</option>
+              <option value="1">Selecionados</option>
+              <option value="0">Não selecionados</option>
+            </select>
+            <span class="count-label"><b id="cat-sku-count">0</b> SKUs</span>
+            <button class="btn btn-secondary btn-sm" onclick="exportCatCSV()">↓ CSV</button>
+            <button class="btn btn-sm" style="background:var(--accent-bg);color:var(--accent2);border:1px solid rgba(124,106,247,.2)" onclick="openGroupModal()">⛓ Grupos</button>
+          </div>
+          <div class="table-wrap" style="max-height:calc(100vh - 240px)">
+            <div id="cat-sku-state" style="padding:40px;text-align:center;display:none">
+              <div class="spinner" style="margin:0 auto 12px"></div>
+              <p style="color:var(--text2)">A carregar SKUs…</p>
+            </div>
+            <table id="cat-sku-table">
+              <thead><tr>
+                <th class="c">SEL</th>
+                <th>SKU</th>
+                <th class="c">Tipo</th>
+                <th class="r">IDR</th>
+                <th class="r">USD</th>
+                <th class="r">BRL Custo</th>
+                <th class="r">Venda BRL</th>
+                <th class="r">Taxa PIX</th>
+                <th class="r">Net BRL</th>
+                <th class="r">Margem</th>
+              </tr></thead>
+              <tbody id="cat-sku-tbody"></tbody>
+            </table>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:8px 14px;margin-top:8px;font-size:11px;color:var(--text2);display:flex;flex-wrap:wrap;gap:6px;align-items:center">
+            <span>Fórmula:</span>
+            <code style="background:var(--bg);padding:2px 6px;border-radius:3px;font-family:var(--font-mono)">IDR × 0.00034 = Custo BRL</code>
+            <span>→</span>
+            <code style="background:var(--bg);padding:2px 6px;border-radius:3px;font-family:var(--font-mono)">× 1.25 = Venda</code>
+            <span>→</span>
+            <code style="background:var(--bg);padding:2px 6px;border-radius:3px;font-family:var(--font-mono);color:var(--green)">Net = Venda - PIX(0.99%) - Custo</code>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PUBLICADOS ══ -->
+      <div class="tab-panel" id="tab-publicados">
+        <div class="search-bar">
+          <input class="search-input" id="pub-search" type="text" placeholder="🔍 Buscar SKU..." oninput="pubFilter()">
+          <span class="count-label"><b id="pub-count">0</b> produtos publicados</span>
+          <button class="btn btn-secondary btn-sm" onclick="loadPublicados()">↻ Recarregar</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>Produto / SKU</th>
+              <th>Categoria</th>
+              <th class="r">IDR</th>
+              <th class="r">Venda BRL</th>
+              <th class="r">Net BRL</th>
+              <th class="r">Margem</th>
+              <th class="c">Acção</th>
+            </tr></thead>
+            <tbody id="pub-tbody"><tr><td colspan="7" class="c" style="padding:40px;color:var(--text2)">Carregando…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ══ JOGOS ══ -->
+      <div class="tab-panel" id="tab-jogos">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <div>
+            <div style="font-size:15px;font-weight:600">🕹️ Gestão de Jogos</div>
+            <div style="font-size:11px;color:var(--text2);margin-top:2px">Cada jogo corresponde a uma categoria do catálogo Lapak. O thumbnail é a imagem exibida na loja.</div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="openGameModal()">+ Novo Jogo</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th style="width:60px" class="c">Thumb</th>
+              <th>Nome / Slug</th>
+              <th class="c">Categoria Lapak</th>
+              <th class="c">Tipo</th>
+              <th class="c">Popular</th>
+              <th class="c">Destaque</th>
+              <th class="r">Preço Min.</th>
+              <th class="c">Activo</th>
+              <th class="c">Acções</th>
+            </tr></thead>
+            <tbody id="games-tbody"><tr><td colspan="9" class="c" style="padding:40px;color:var(--text2)"><span class="spinner" style="display:inline-block;margin-right:8px"></span>A carregar…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ══ SITE CONTENT ══ -->
+      <div class="tab-panel" id="tab-site">
+        <div class="sub-tabs">
+          <button class="sub-tab active" onclick="showSubTab('banners',this)">🖼️ Banners / Hero</button>
+          <button class="sub-tab" onclick="showSubTab('destaques',this)">⭐ Jogos em Destaque</button>
+          <button class="sub-tab" onclick="showSubTab('textos',this)">✏️ Textos & SEO</button>
+        </div>
+
+        <!-- Banners -->
+        <div class="sub-panel active" id="sub-banners">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+            <div style="font-size:12px;color:var(--text2)">Banners exibidos no hero da homepage · <b id="banner-ctx">Brasil</b></div>
+            <button class="btn btn-primary btn-sm" onclick="openBannerModal()">+ Novo Banner</button>
+          </div>
+          <div id="banners-list" class="table-wrap">
+            <table>
+              <thead><tr>
+                <th class="c">Ordem</th>
+                <th>Título</th>
+                <th>Subtítulo</th>
+                <th>CTA + Link de Destino</th>
+                <th>Imagem (URL)</th>
+                <th class="c">Activo</th>
+                <th class="c">Acções</th>
+              </tr></thead>
+              <tbody id="banners-tbody"><tr><td colspan="7" class="c" style="padding:40px;color:var(--text2)"><span class="spinner" style="display:inline-block;margin-right:8px"></span>A carregar…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Destaques -->
+        <div class="sub-panel" id="sub-destaques">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+            <div style="font-size:12px;color:var(--text2)">Jogos em destaque na homepage · <b id="dest-ctx">Brasil</b> · Arrasta para reordenar</div>
+            <button class="btn btn-primary btn-sm" onclick="openDestaqueModal()">+ Adicionar Jogo</button>
+          </div>
+          <div id="destaques-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px">
+            <div class="empty"><div class="icon">⭐</div><p>Nenhum jogo em destaque</p><span>Clica em "+ Adicionar Jogo"</span></div>
+          </div>
+        </div>
+
+        <!-- Textos & SEO -->
+        <div class="sub-panel" id="sub-textos">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+            <div class="card">
+              <div class="card-title">SEO — Homepage <span style="color:var(--text3)" id="seo-ctx-label">(Brasil)</span></div>
+              <div class="form-group"><label>Meta Title</label><input type="text" id="seo-title" placeholder="Recarga Games - Top Up de Jogos no Brasil"></div>
+              <div class="form-group"><label>Meta Description</label><textarea id="seo-desc" rows="3" placeholder="Recarregue seus jogos favoritos com segurança e rapidez. Free Fire, Roblox, PUBG e mais."></textarea></div>
+              <button class="btn btn-primary btn-sm" onclick="saveSEO()">Salvar SEO</button>
+            </div>
+            <div class="card">
+              <div class="card-title">Textos da Homepage</div>
+              <div class="form-group"><label>Headline Principal (H1)</label><input type="text" id="txt-h1" placeholder="Recarregue seus jogos favoritos"></div>
+              <div class="form-group"><label>Subtítulo</label><input type="text" id="txt-sub" placeholder="Entrega imediata · PIX · Sem cadastro"></div>
+              <div class="form-group"><label>Texto do CTA Principal</label><input type="text" id="txt-cta" placeholder="Recarregar agora"></div>
+              <button class="btn btn-primary btn-sm" onclick="saveTextos()">Salvar Textos</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PAÍSES & PREÇOS ══ -->
+      <div class="tab-panel" id="tab-precos">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px">
+          <div class="card">
+            <div class="card-title">Configuração de Câmbio & Margem · <span id="preco-country">Brasil (BRL)</span></div>
+            <div class="form-row">
+              <div class="form-group"><label>Taxa IDR → BRL</label><input type="number" id="p-rate" step="0.000001" placeholder="0.00034"></div>
+              <div class="form-group"><label>Margem (%)</label><input type="number" id="p-margin" step="0.5" placeholder="25"></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label>Imposto (%)</label><input type="number" id="p-tax" step="0.5" placeholder="0"></div>
+              <div class="form-group"><label>Nome do Imposto</label><input type="text" id="p-taxname" placeholder="ex: IVA"></div>
+            </div>
+            <div class="form-group">
+              <label>Imposto incluído no preço?</label>
+              <select id="p-taxincl">
+                <option value="true">Sim — incluído no preço</option>
+                <option value="false">Não — exibido separado</option>
+              </select>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="saveCountryConfig()">Salvar Configuração</button>
+          </div>
+          <div class="card">
+            <div class="card-title">Métodos de Pagamento</div>
+            <table style="font-size:11px">
+              <thead><tr><th>Método</th><th class="r">% Custo</th><th class="r">Custo Fixo</th><th class="c">Activo</th></tr></thead>
+              <tbody id="pm-tbody"><tr><td colspan="4" class="c" style="padding:20px;color:var(--text2)">Carregando…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ VOUCHERS ══ -->
+      <div class="tab-panel" id="tab-vouchers">
+        <div style="display:grid;grid-template-columns:320px 1fr;gap:16px">
+          <div class="card" style="align-self:start">
+            <div class="card-title">Gerar Vouchers em Lote</div>
+            <div class="form-group"><label>Prefixo</label><input type="text" id="v-prefix" placeholder="COCA" maxlength="10"></div>
+            <div class="form-group"><label>SKU(s) Elegíveis</label><input type="text" id="v-skus" placeholder="FF100-S2-br,FF70-S3-br"></div>
+            <div class="form-group"><label>Preço de Resgate (BRL) — 0 = grátis</label><input type="number" id="v-price" value="0" min="0" step="0.01"></div>
+            <div class="form-group"><label>Quantidade (1–500)</label><input type="number" id="v-qty" value="10" min="1" max="500"></div>
+            <div class="form-group"><label>Sponsor (opcional)</label><input type="text" id="v-sponsor" placeholder="Coca-Cola BR"></div>
+            <button class="btn btn-primary" style="width:100%" onclick="generateVouchers()">⚡ Gerar Vouchers</button>
+          </div>
+          <div>
+            <div class="search-bar">
+              <input class="search-input" id="v-search" type="text" placeholder="🔍 Buscar código ou SKU..." oninput="voucherFilter()">
+              <select class="filter-select" id="v-status" onchange="voucherFilter()">
+                <option value="">Todos</option>
+                <option value="available">Disponíveis</option>
+                <option value="redeemed">Resgatados</option>
+              </select>
+              <span class="count-label" id="v-count">0 vouchers</span>
+            </div>
+            <div class="table-wrap" style="max-height:400px">
+              <table>
+                <thead><tr><th>Código</th><th>SKU(s)</th><th>Preço</th><th class="c">Status</th><th>Resgatado em</th><th>Usuário</th></tr></thead>
+                <tbody id="v-tbody"><tr><td colspan="6" class="c" style="padding:30px;color:var(--text2)">Carregando…</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PEDIDOS ══ -->
+      <div class="tab-panel" id="tab-pedidos">
+        <div class="card" style="max-width:500px;margin-bottom:16px">
+          <div class="card-title">Consultar Pedido por TID</div>
+          <div style="display:flex;gap:8px">
+            <input class="search-input" id="ped-tid" type="text" placeholder="Transaction ID..." style="flex:1">
+            <button class="btn btn-primary" onclick="lookupOrder()">Consultar</button>
+          </div>
+        </div>
+        <div id="ped-result"></div>
+        <div class="card" style="margin-top:16px">
+          <div class="card-title">Pedidos Recentes</div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>TID</th><th>Produto</th><th class="r">Valor</th><th>Método</th><th class="c">Status</th><th>Data</th></tr></thead>
+              <tbody id="ped-tbody"><tr><td colspan="6" class="c" style="padding:30px;color:var(--text2)">Carregando…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ MONITOR ══ -->
+      <div class="tab-panel" id="tab-monitor">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+          <!-- Sync Status -->
+          <div class="card">
+            <div class="card-title">Sincronização de Catálogo</div>
+            <div id="mon-sync-status" style="font-size:12px;line-height:2;color:var(--text2)">A carregar…</div>
+            <div style="display:flex;gap:8px;margin-top:12px">
+              <button class="btn btn-primary btn-sm" onclick="triggerSync()">▶ Sync Agora</button>
+              <button class="btn btn-secondary btn-sm" onclick="loadMonitorStatus()">↻ Atualizar</button>
+            </div>
+          </div>
+          <!-- Proxy Status -->
+          <div class="card">
+            <div class="card-title">Status do Proxy</div>
+            <div id="proxy-status" style="font-size:12px;line-height:2;color:var(--text2)">A verificar…</div>
+            <button class="btn btn-secondary btn-sm" style="margin-top:10px" onclick="checkProxy()">↻ Verificar</button>
+          </div>
+        </div>
+        <!-- Sync Stats -->
+        <div class="stats-grid" id="mon-stats-grid" style="margin-bottom:14px">
+          <div class="stat-card"><div class="stat-label">SKUs Verificados</div><div class="stat-value accent" id="mon-skus">—</div></div>
+          <div class="stat-card"><div class="stat-label">Alertas Gerados</div><div class="stat-value amber" id="mon-alerts">—</div></div>
+          <div class="stat-card"><div class="stat-label">Auto-Pausados</div><div class="stat-value" style="color:var(--red)" id="mon-paused">—</div></div>
+          <div class="stat-card"><div class="stat-label">Failovers</div><div class="stat-value green" id="mon-failovers">—</div></div>
+        </div>
+        <!-- Webhooks -->
+        <div class="card">
+          <div class="card-title">Webhook Callbacks — configurar no painel Lapak</div>
+          <div style="font-size:12px;color:var(--text2);line-height:2">
+            <div>Order Callback URL: <code style="background:var(--bg);padding:2px 6px;border-radius:3px;font-family:var(--font-mono)">https://api.recargagames.com/webhook/order</code></div>
+            <div>Product Callback URL: <code style="background:var(--bg);padding:2px 6px;border-radius:3px;font-family:var(--font-mono)">https://api.recargagames.com/webhook/product</code></div>
+            <div style="margin-top:6px;color:var(--text3)">Configure estas URLs em lapakgaming.com → Account → Config Management → Callback URLs</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ ALERTAS ══ -->
+      <div class="tab-panel" id="tab-alertas">
+        <div class="search-bar">
+          <select class="filter-select" id="alert-type-filter" onchange="alertFilter()">
+            <option value="">Todos os tipos</option>
+            <option value="unavailable">Indisponível</option>
+            <option value="restored">Restaurado</option>
+            <option value="price_change">Mudança de Preço</option>
+            <option value="margin_negative">Margem Negativa</option>
+            <option value="failover">Failover</option>
+          </select>
+          <span class="count-label" id="alert-count">0 alertas</span>
+          <button class="btn btn-secondary btn-sm" onclick="loadAlertas()">↻ Recarregar</button>
+          <button class="btn btn-sm" style="background:var(--green-bg);color:var(--green);border:1px solid rgba(16,185,129,.2)" onclick="resolveAllAlerts()">✓ Resolver Todos</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>SKU</th>
+              <th>Tipo</th>
+              <th class="r">Valor Anterior</th>
+              <th class="r">Valor Novo</th>
+              <th>Data</th>
+              <th class="c">Ação</th>
+            </tr></thead>
+            <tbody id="alert-tbody"><tr><td colspan="6" class="c" style="padding:30px;color:var(--text2)">Carregando…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ══ CONFIG ══ -->
+      <div class="tab-panel" id="tab-config">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div class="card">
+            <div class="card-title">API & Ambiente</div>
+            <div class="form-group"><label>Ambiente Activo</label>
+              <select id="cfg-env">
+                <option value="dev">Development</option>
+                <option value="prod">Production</option>
+              </select>
+            </div>
+            <div class="form-group"><label>Proxy URL</label>
+              <input type="text" id="cfg-proxy" value="https://api.recargagames.com" readonly style="opacity:.6">
+            </div>
+            <div class="form-group"><label>Supabase Project ID</label>
+              <input type="text" value="ashmirzgyuhspymldpfv" readonly style="opacity:.6;font-family:var(--font-mono);font-size:11px">
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="saveConfig()">Salvar Config</button>
+          </div>
+          <div class="card">
+            <div class="card-title">Segurança</div>
+            <div style="font-size:12px;line-height:2;color:var(--text2)">
+              <div>🔐 Auth: SHA-256 client-side</div>
+              <div>🔑 API Key Lapak: Servidor Hetzner</div>
+              <div>🗄️ Supabase: Publishable key + RLS</div>
+              <div>🌐 Proxy: api.recargagames.com</div>
+            </div>
+            <div style="margin-top:12px">
+              <button class="btn btn-danger btn-sm" onclick="doLogout()">Terminar Sessão</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- BANNER MODAL -->
+<div id="banner-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:8000;align-items:center;justify-content:center">
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:24px;width:500px;max-width:95vw">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+      <div style="font-weight:600" id="banner-modal-title">Novo Banner</div>
+      <button onclick="closeBannerModal()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:18px">×</button>
+    </div>
+    <input type="hidden" id="bm-id">
+    <div class="form-row">
+      <div class="form-group"><label>Título</label><input type="text" id="bm-title" placeholder="Recarregue agora"></div>
+      <div class="form-group"><label>Ordem</label><input type="number" id="bm-order" value="1" min="1"></div>
+    </div>
+    <div class="form-group"><label>Subtítulo</label><input type="text" id="bm-sub" placeholder="Free Fire, Roblox, PUBG e mais"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Texto do CTA <span style="color:var(--text3);font-size:10px">(botão no banner)</span></label><input type="text" id="bm-cta" placeholder="Recarregar agora"></div>
+      <div class="form-group">
+        <label>URL de Destino <span style="color:var(--red);font-size:10px">★ obrigatório</span></label>
+        <input type="text" id="bm-link" placeholder="/br/free-fire" style="border-color:rgba(124,106,247,.4)">
+        <div style="font-size:10px;color:var(--text3);margin-top:3px">Página do site para onde o banner linka. Ex: /br/free-fire, /br/roblox</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>URL da Imagem <span style="color:var(--text3)">(Cloudinary ou outro CDN)</span></label>
+      <input type="text" id="bm-img" placeholder="https://res.cloudinary.com/...">
+    </div>
+    <div class="form-group">
+      <label>Cor de fundo <span style="color:var(--text3)">(fallback se sem imagem)</span></label>
+      <input type="text" id="bm-bg" placeholder="#1a1a2e">
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:6px">
+      <button class="btn btn-secondary" onclick="closeBannerModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveBanner()">Salvar Banner</button>
+    </div>
+  </div>
+</div>
+
+<!-- DESTAQUE MODAL -->
+<div id="dest-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:8000;align-items:center;justify-content:center">
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:24px;width:440px;max-width:95vw">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+      <div style="font-weight:600">Adicionar Jogo em Destaque</div>
+      <button onclick="closeDestaqueModal()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:18px">×</button>
+    </div>
+    <div class="form-group"><label>Jogo (do catálogo)</label>
+      <select id="dm-game" style="width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:var(--rs);padding:8px;color:var(--text);font-family:inherit;font-size:13px;outline:none">
+        <option value="">Seleccionar jogo…</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Badge</label>
+        <select id="dm-badge" style="width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:var(--rs);padding:8px;color:var(--text);font-family:inherit;font-size:13px;outline:none">
+          <option value="">Nenhum</option>
+          <option value="POPULAR">🔥 Popular</option>
+          <option value="NOVO">✨ Novo</option>
+          <option value="HOT">⚡ Hot</option>
+          <option value="PROMO">💰 Promo</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Ordem</label><input type="number" id="dm-order" value="1" min="1"></div>
+    </div>
+    <div class="form-group"><label>Link (opcional)</label><input type="text" id="dm-link" placeholder="/br/free-fire"></div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:6px">
+      <button class="btn btn-secondary" onclick="closeDestaqueModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveDestaque()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOTIFICATION -->
+<div class="notif" id="notif"></div>
+<script src="https://upload-widget.cloudinary.com/global/all.js" async></script>
+<script>
+// ══ CONSTANTS ══
+const SB_URL  = 'https://ashmirzgyuhspymldpfv.supabase.co';
+const SB_KEY  = 'sb_publishable_rGZqf4_vv2XzF4N3wZUwEg_rVoZUV_j';
+const PROXY   = 'https://api.recargagames.com';
+const AUTH_HASH = 'c52b9c92ae82cfd7b68a617664b4886c32ae0912fa1a66fdaa3d95e4148d538d';
+const AUTH_KEY  = 'rg_admin_auth';
+
+let ENV = 'prod';
+let BRAND = 'rg';
+let COUNTRY = 'br';
+
+// ══ AUTH ══
+async function sha256(s) {
+  const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+  return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+
+function setEnv(e, btn) {
+  ENV = e;
+  document.querySelectorAll('.env-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+async function doLogin() {
+  const pw   = document.getElementById('lp').value;
+  const hash = await sha256(pw);
+  if (hash === AUTH_HASH) {
+    sessionStorage.setItem(AUTH_KEY, '1');
+    document.getElementById('auth-overlay').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    document.getElementById('sf-env').textContent = ENV.toUpperCase();
+    document.getElementById('sf-env').className = 'env-badge ' + ENV;
+    document.getElementById('ds-env').textContent = ENV.toUpperCase();
+    initAdmin();
+  } else {
+    document.getElementById('auth-err').textContent = 'Password incorrecta';
+    document.getElementById('lp').value = '';
+    document.getElementById('lp').focus();
+  }
+}
+
+function doLogout() {
+  sessionStorage.removeItem(AUTH_KEY);
+  location.reload();
+}
+
+// ── Session check moved to after all declarations ──
+
+// ══ NAVIGATION ══
+const TAB_TITLES = {
+  dashboard: '📊 Dashboard',
+  catalogo:  '🎮 Catálogo & Pricing',
+  publicados:'✅ Produtos Publicados',
+  site:      '🎨 Conteúdo do Site',
+  precos:    '🌍 Países & Preços',
+  vouchers:  '🎟️ Vouchers Bônus',
+  pedidos:   '📦 Pedidos',
+  monitor:   '📡 Monitor',
+  alertas:   '🔔 Alertas',
+  config:    '⚙️ Config',
+};
+
+function showTab(name, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.getElementById('tab-title').textContent = TAB_TITLES[name] || name;
+  if (btn) btn.classList.add('active');
+  else {
+    document.querySelectorAll('.nav-btn').forEach(b => {
+      if (b.getAttribute('onclick')?.includes(`'${name}'`)) b.classList.add('active');
+    });
+  }
+  onTabOpen(name);
+}
+
+function showSubTab(name, btn) {
+  document.querySelectorAll('.sub-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sub-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('sub-' + name).classList.add('active');
+  btn.classList.add('active');
+  if (name === 'banners') loadBanners();
+  if (name === 'destaques') loadDestaques();
+  if (name === 'textos') loadTextos();
+}
+
+function onTabOpen(name) {
+  if (name === 'catalogo' && catGames.length === 0) loadCatalog();
+  if (name === 'publicados') loadPublicados();
+  if (name === 'site') { loadBanners(); }
+  if (name === 'precos') loadPrecos();
+  if (name === 'vouchers') loadVouchers();
+  if (name === 'pedidos') loadPedidos();
+  if (name === 'monitor') { checkProxy(); loadMonitorStatus(); }
+  if (name === 'alertas') loadAlertas();
+  if (name === 'jogos')   loadGames();
+  if (name === 'alertas') loadAlertas();
+}
+
+// ══ CONTEXT ══
+const BRAND_NAMES   = { rg:'Recarga Games', tu:'Topup.games', rj:'Rechargejeux.com', rk:'RekargaGames.com' };
+const COUNTRY_NAMES = { br:'🇧🇷 Brasil', mx:'🇲🇽 México', uy:'🇺🇾 Uruguai', co:'🇨🇴 Colômbia' };
+
+function ctxChange() {
+  BRAND   = document.getElementById('brandSel').value;
+  COUNTRY = document.getElementById('countrySel').value;
+  document.getElementById('ds-brand').textContent   = BRAND_NAMES[BRAND] || BRAND;
+  document.getElementById('ds-country').textContent = COUNTRY_NAMES[COUNTRY] || COUNTRY;
+  document.getElementById('banner-ctx').textContent = COUNTRY_NAMES[COUNTRY] || COUNTRY;
+  document.getElementById('dest-ctx').textContent   = COUNTRY_NAMES[COUNTRY] || COUNTRY;
+  document.getElementById('preco-country').textContent = `${COUNTRY_NAMES[COUNTRY]} (${COUNTRY.toUpperCase()})`;
+}
+
+// ══ INIT ══
+function initAdmin() {
+  ctxChange();
+  loadDashboard();
+}
+
+// ══ DASHBOARD ══
+async function loadDashboard() {
+  try {
+    const r = await sbGet('price_benchmarks?select=published&published=eq.true');
+    document.getElementById('ds-pub').textContent = r.length;
+  } catch { document.getElementById('ds-pub').textContent = '—'; }
+  try {
+    const r = await sbGet('bonus_vouchers?select=id&status=eq.available');
+    document.getElementById('ds-vouchers').textContent = r.length;
+  } catch { document.getElementById('ds-vouchers').textContent = '—'; }
+  try {
+    const r = await sbGet('orders?select=id&created_at=gte.' + new Date().toISOString().slice(0,10));
+    document.getElementById('ds-orders').textContent = r.length;
+  } catch { document.getElementById('ds-orders').textContent = '0'; }
+}
+
+// ══ SUPABASE HELPER ══
+async function sbGet(path) {
+  const r = await fetch(`${SB_URL}/rest/v1/${path}`, {
+    headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` }
+  });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+async function sbUpsert(table, body, onConflict = null) {
+  const url = onConflict
+    ? `${SB_URL}/rest/v1/${table}?on_conflict=${onConflict}`
+    : `${SB_URL}/rest/v1/${table}`;
+  const r = await fetch(url, {
+    method: 'POST',
+    headers: { apikey:SB_KEY, Authorization:`Bearer ${SB_KEY}`, 'Content-Type':'application/json', Prefer:'resolution=merge-duplicates,return=minimal' },
+    body: JSON.stringify(body)
+  });
+  if (!r.ok) throw new Error(await r.text());
+  return r;
+}
+
+async function sbDelete(table, col, val) {
+  const r = await fetch(`${SB_URL}/rest/v1/${table}?${col}=eq.${val}`, {
+    method: 'DELETE',
+    headers: { apikey:SB_KEY, Authorization:`Bearer ${SB_KEY}` }
+  });
+  if (!r.ok) throw new Error(await r.text());
+}
+
+// ══ GATEWAY HELPER ══
+async function gw(endpoint, payload={}) {
+  const r = await fetch(`${PROXY}/gateway`, {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json', 'x-env':ENV },
+    body: JSON.stringify({ endpoint, method:'GET', payload })
+  });
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  const j = await r.json();
+  if (!j.ok) throw new Error(`Gateway ${j.status}: ${j.data?.code || 'error'}`);
+  const d = j.data;
+  if (d?.data?.products) return d.data.products;
+  if (Array.isArray(d?.data)) return d.data;
+  if (d?.products) return d.products;
+  if (Array.isArray(d)) return d;
+  return d;
+}
+
+// ══ CATALOG — CATEGORY FIRST ══
+let catGames        = [];   // all categories/games
+let catGamesFiltered= [];
+let catCurrentGame  = null; // { code, name }
+let catSkus         = [];   // SKUs of current game
+let catSkusFiltered = [];
+let catPublishedSet = new Set();
+let catOverrides    = {};
+let catConfig = { idrToBrl:0.00034, idrToUsd:0.000061, margin:0.25, tax:0, fee:0.0099 };
+
+async function loadCatalog() {
+  // Show game grid view, hide sku view
+  document.getElementById('cat-view-games').style.display = '';
+  document.getElementById('cat-view-skus').style.display  = 'none';
+  document.getElementById('cat-game-state').style.display = '';
+  document.getElementById('cat-game-grid').innerHTML = '';
+  catGames = [];
+
+  try {
+    const data = await gw('/category', { country_code: COUNTRY });
+    // data can be array, {categories:[...]}, {data:[...]}, or {data:{categories:[...]}}
+    let rawList = [];
+    if (Array.isArray(data))                          rawList = data;
+    else if (Array.isArray(data?.categories))         rawList = data.categories;
+    else if (Array.isArray(data?.data))               rawList = data.data;
+    else if (Array.isArray(data?.data?.categories))   rawList = data.data.categories;
+    catGames = rawList
+      .filter(c => c.code && c.name)
+      .sort((a,b) => a.name.localeCompare(b.name));
+
+    // Load published counts from Supabase
+    try {
+      const rows = await sbGet(`price_benchmarks?country_code=eq.${COUNTRY}&select=product_code,rrp_override,published`);
+      rows.forEach(r => {
+        if (r.rrp_override) catOverrides[r.product_code] = r.rrp_override;
+        if (r.published)    catPublishedSet.add(r.product_code);
+      });
+    } catch {}
+
+    document.getElementById('cat-game-state').style.display = 'none';
+    document.getElementById('cat-game-count').textContent  = catGames.length;
+    document.getElementById('ds-cats').textContent         = catGames.length;
+    catGamesFiltered = catGames;
+    renderGameGrid();
+    notify(`${catGames.length} jogos carregados`, 'ok');
+  } catch(e) {
+    document.getElementById('cat-game-state').innerHTML =
+      `<div style="color:var(--red)">⚠ ${e.message}</div>
+       <button class="btn btn-secondary btn-sm" style="margin-top:10px" onclick="loadCatalog()">Tentar novamente</button>`;
+  }
+}
+
+function renderGameGrid() {
+  const grid = document.getElementById('cat-game-grid');
+  if (!catGamesFiltered.length) {
+    grid.innerHTML = `<div class="empty"><div class="icon">🎮</div><p>Nenhum jogo encontrado</p></div>`;
+    return;
+  }
+  grid.innerHTML = catGamesFiltered.map(g => `
+    <div onclick="loadGameSkus('${g.code}','${esc(g.name)}')" style="
+      background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+      padding:14px 12px;cursor:pointer;transition:all .12s;
+    " onmouseover="this.style.borderColor='var(--accent)';this.style.background='var(--accent-bg)'"
+       onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--surface)'">
+      <div style="font-weight:600;font-size:12px;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(g.name)}">${esc(g.name)}</div>
+      <div style="font-size:10px;color:var(--text3);font-family:var(--font-mono)">${g.code}</div>
+    </div>`).join('');
+}
+
+function catGameFilter() {
+  const q = document.getElementById('cat-game-search').value.toLowerCase();
+  catGamesFiltered = q
+    ? catGames.filter(g => g.name.toLowerCase().includes(q) || g.code.toLowerCase().includes(q))
+    : catGames;
+  document.getElementById('cat-game-count').textContent = catGamesFiltered.length;
+  renderGameGrid();
+}
+
+async function loadGameSkus(code, name) {
+  catCurrentGame = { code, name };
+  window._catCurrentCode = code;
+  catSkus = [];
+  document.getElementById('cat-view-games').style.display  = 'none';
+  document.getElementById('cat-view-skus').style.display   = '';
+  document.getElementById('cat-sku-state').style.display   = '';
+  document.getElementById('cat-sku-tbody').innerHTML       = '';
+  document.getElementById('cat-sku-search').value          = '';
+
+  // Popular dropdown de jogos
+  await catPopulateGameDropdown(code);
+
+  try {
+    const prods = await gw('/product', { category_code: code, country_code: COUNTRY });
+    catSkus = (Array.isArray(prods) ? prods : prods?.products || []).map(p => ({
+      code: p.code || p.product_code || '',
+      name: p.name || p.product_name || '',
+      type: (p.type || 'DTU').toUpperCase().includes('VOUCHER') ? 'Voucher' : 'DTU',
+      idr:  parseFloat(p.price || 0),
+    }));
+    document.getElementById('cat-sku-state').style.display = 'none';
+    document.getElementById('ds-total').textContent = (parseInt(document.getElementById('ds-total').textContent)||0) || catSkus.length;
+    catSkusFiltered = catSkus;
+    renderSkuTable();
+    document.getElementById('cat-sku-count').textContent = catSkus.length;
+  } catch(e) {
+    document.getElementById('cat-sku-state').innerHTML =
+      `<div style="color:var(--red);padding:30px;text-align:center">⚠ ${e.message}</div>`;
+  }
+}
+
+function catBackToGames() {
+  document.getElementById('cat-view-skus').style.display  = 'none';
+  document.getElementById('cat-view-games').style.display = '';
+}
+
+// Popular o dropdown com os jogos da tabela games
+async function catPopulateGameDropdown(selectedCode) {
+  const sel = document.getElementById('cat-game-sel');
+  try {
+    const games = await sbGet(`games?country_code=eq.${COUNTRY}&active=eq.true&order=display_order.asc,name.asc&select=name,category_code,slug`);
+    if (!games || !games.length) {
+      sel.innerHTML = '<option value="">— Sem jogos configurados —</option>';
+      return;
+    }
+    sel.innerHTML = '<option value="">— Seleccionar jogo —</option>' +
+      games.map(g => {
+        const val = g.category_code || '';
+        const label = g.category_code ? g.name : `${g.name} ⚠ (sem category code)`;
+        const selected = g.category_code === selectedCode ? 'selected' : '';
+        return `<option value="${val}" ${selected} ${!g.category_code ? 'style="color:var(--amber)"' : ''}>${label}</option>`;
+      }).join('');
+
+    // Se o jogo actual não tem entry na tabela games, adicionar como opção extra
+    if (selectedCode && !games.find(g => g.category_code === selectedCode)) {
+      sel.innerHTML += `<option value="${selectedCode}" selected>${selectedCode} (sem jogo associado)</option>`;
+    }
+  } catch(e) {
+    sel.innerHTML = '<option value="">— Erro ao carregar —</option>';
+  }
+}
+
+// Trocar de jogo via dropdown
+async function catSwitchGame(code) {
+  if (!code) return;
+  // Encontrar o nome do jogo no dropdown
+  const sel = document.getElementById('cat-game-sel');
+  const name = sel.options[sel.selectedIndex]?.text || code;
+  await loadGameSkus(code, name);
+}
+
+function catSkuFilter() {
+  const q   = document.getElementById('cat-sku-search').value.toLowerCase();
+  const pub = document.getElementById('cat-sku-pub').value;
+  catSkusFiltered = catSkus.filter(p => {
+    if (q && !p.name.toLowerCase().includes(q) && !p.code.toLowerCase().includes(q)) return false;
+    if (pub === '1' && !catPublishedSet.has(p.code)) return false;
+    if (pub === '0' &&  catPublishedSet.has(p.code)) return false;
+    return true;
+  });
+  renderSkuTable();
+  document.getElementById('cat-sku-count').textContent = catSkusFiltered.length;
+}
+
+function catCalc(p) {
+  const c = catConfig;
+  const costBrl  = p.idr * c.idrToBrl;
+  const liquid   = costBrl * (1 + c.margin);
+  const rrpAuto  = liquid * (1 + c.tax);
+  const rrpFinal = catOverrides[p.code] || rrpAuto;
+  const fee      = rrpFinal * c.fee;
+  const net      = rrpFinal - fee - costBrl;
+  const mPct     = costBrl > 0 ? (net / costBrl) * 100 : 0;
+  return { costBrl, rrpAuto, rrpFinal, fee, net, mPct, costUsd: p.idr * c.idrToUsd };
+}
+
+function renderSkuTable() {
+  const tbody = document.getElementById('cat-sku-tbody');
+  if (!catSkusFiltered.length) {
+    tbody.innerHTML = `<tr><td colspan="10" class="c" style="padding:40px;color:var(--text2)">Nenhum SKU encontrado</td></tr>`;
+    return;
+  }
+  // Agrupar por nome de produto
+  const byName = {};
+  catSkusFiltered.forEach(p => {
+    if (!byName[p.name]) byName[p.name] = [];
+    byName[p.name].push(p);
+  });
+  let rows = '';
+  Object.entries(byName).forEach(([name, skus]) => {
+    const selCount = skus.filter(p => catPublishedSet.has(p.code)).length;
+    const codesJson = skus.map(s => s.code).join(',');
+    // Separador de produto
+    rows += `<tr style="background:var(--bg2);border-top:2px solid var(--border2)">
+      <td colspan="10" style="padding:7px 14px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:12px;font-weight:600;color:var(--text)">${esc(name)}</span>
+          <span style="font-size:10px;color:var(--text3)">${skus.length} SKU${skus.length>1?'s':''}</span>
+          ${selCount > 0 ? `<span style="font-size:10px;background:var(--green-bg);color:var(--green);padding:1px 6px;border-radius:3px">${selCount} selecionado${selCount>1?'s':''}</span>` : ''}
+          ${skus.length > 1 ? `<button class="btn btn-sm" style="margin-left:auto;background:var(--accent-bg);color:var(--accent2);border:1px solid rgba(124,106,247,.2);padding:3px 8px;font-size:10px" onclick="openGroupModalInline(['${codesJson.replace(/,/g,"','")}'])">⛓ Gerir Grupo</button>` : ''}
+        </div>
+      </td>
+    </tr>`;
+    // SKUs do produto
+    skus.forEach(p => {
+      const sel = catPublishedSet.has(p.code);
+      const { costUsd, costBrl, rrpFinal, fee, net, mPct } = catCalc(p);
+      const mc = mPct >= 20 ? 'mp-good' : mPct >= 10 ? 'mp-ok' : 'mp-bad';
+      const nc = net >= 0 ? 'color:var(--green)' : 'color:var(--red)';
+      rows += `<tr style="${sel ? 'background:rgba(16,185,129,.02)' : ''}">
+        <td class="c"><label class="toggle"><input type="checkbox" ${sel?'checked':''} onchange="catTogglePub('${p.code}',this)"><span class="toggle-slider"></span></label></td>
+        <td>
+          <div style="font-size:10px;color:var(--text3);font-family:var(--font-mono)">${p.code}</div>
+        </td>
+        <td class="c"><span class="badge ${p.type==='DTU'?'badge-blue':'badge-amber'}">${p.type}</span></td>
+        <td class="r mono" style="color:var(--text2)">${fmtInt(p.idr)}</td>
+        <td class="r mono" style="color:var(--text3)">$${fmtD(costUsd,3)}</td>
+        <td class="r mono" style="color:var(--amber)">R$${fmtD(costBrl)}</td>
+        <td class="r mono price-cell" onclick="catEditPrice(this,'${p.code}',${rrpFinal})" title="Clique para editar">
+          R$${fmtD(rrpFinal)}${catOverrides[p.code]?'<span style="color:var(--accent2);font-size:9px;margin-left:2px">✎</span>':''}
+        </td>
+        <td class="r mono" style="color:var(--red)">-R$${fmtD(fee)}</td>
+        <td class="r mono" style="${nc}">R$${fmtD(net)}</td>
+        <td class="c"><span class="margin-pill ${mc}">${mPct.toFixed(1)}%</span></td>
+      </tr>`;
+    });
+  });
+  tbody.innerHTML = rows;
+}
+
+function openGroupModalInline(codes) {
+  _groupSelectedSkus = [];
+  _groupModalCategory = document.getElementById('cat-sku-title')?.textContent?.trim() || '';
+  document.getElementById('gm-game-name').textContent = _groupModalCategory;
+  document.getElementById('gm-name').value = '';
+  document.getElementById('gm-msg').textContent = '';
+  // Pre-seleccionar os SKUs já selecionados deste produto
+  codes.forEach(code => { if (catPublishedSet.has(code)) _groupSelectedSkus.push(code); });
+  document.getElementById('group-modal').style.display = 'flex';
+  loadGroupsForGame();
+  renderSkuPickerFromCodes(codes);
+}
+
+function renderSkuPickerFromCodes(codes) {
+  const picker = document.getElementById('gm-sku-picker');
+  const skus = codes.map(c => catSkus.find(s => s.code === c)).filter(Boolean);
+  if (!skus.length) { picker.innerHTML = '<div style="padding:12px;color:var(--text3)">Nenhum SKU</div>'; return; }
+  picker.innerHTML = skus.map(p => {
+    const sel = _groupSelectedSkus.includes(p.code);
+    const pos = _groupSelectedSkus.indexOf(p.code);
+    const { costBrl, net } = catCalc(p);
+    return `<div onclick="toggleGroupSkuAndRefresh('${p.code}',${JSON.stringify(codes)})" style="display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;border-bottom:1px solid var(--border);${sel?'background:var(--accent-bg)':''}">
+      <div style="width:22px;height:22px;border-radius:50%;background:${sel?'var(--accent)':'var(--border2)'};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0">${sel?pos+1:'+'}</div>
+      <div style="flex:1">
+        <div style="font-size:11px;font-family:var(--font-mono);color:var(--text)">${p.code}</div>
+        <div style="font-size:10px;color:var(--text2)">${fmtInt(p.idr)} IDR · Custo R$${fmtD(costBrl)} · Net R$${fmtD(net)}</div>
+      </div>
+      ${sel && pos===0 ? '<span style="font-size:9px;font-weight:700;color:var(--accent2);background:var(--accent-bg);padding:2px 6px;border-radius:3px;margin-left:auto">PRINCIPAL</span>' : ''}
+      ${sel && pos>0  ? `<span style="font-size:9px;font-weight:700;color:var(--text2);background:var(--surface);padding:2px 6px;border-radius:3px;margin-left:auto">BACKUP ${pos}</span>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function toggleGroupSkuAndRefresh(code, codes) {
+  const idx = _groupSelectedSkus.indexOf(code);
+  if (idx === -1) _groupSelectedSkus.push(code);
+  else _groupSelectedSkus.splice(idx, 1);
+  renderSkuPickerFromCodes(codes);
+}
+
+async function catTogglePub(code, el) {
+  el.disabled = true;
+  const pub = el.checked;
+  try {
+    const p = catSkus.find(p=>p.code===code);
+    const c = catCalc(p);
+    await sbUpsert('price_benchmarks', {
+      product_code: code, country_code: COUNTRY,
+      rrp_auto: parseFloat(c.rrpAuto.toFixed(4)),
+      rrp_override: catOverrides[code] || null,
+      rrp_final: parseFloat(c.rrpFinal.toFixed(4)),
+      published: pub, updated_at: new Date().toISOString()
+    }, 'product_code,country_code');
+    if (pub) catPublishedSet.add(code); else catPublishedSet.delete(code);
+    document.getElementById('ds-pub').textContent = catPublishedSet.size;
+    notify(pub ? `${code} publicado ✓` : `${code} ocultado`, pub?'ok':'info');
+    catSkuFilter();
+  } catch(e) { notify(`Erro: ${e.message}`, 'err'); el.checked = !pub; }
+  finally { el.disabled = false; }
+}
+
+function catEditPrice(td, code, current) {
+  if (td.querySelector('input')) return;
+  td.innerHTML = `<div style="display:flex;align-items:center;gap:3px">
+    <span style="color:var(--text2);font-size:11px">R$</span>
+    <input type="number" step="0.01" min="0"
+      value="${catOverrides[code]?fmtD(catOverrides[code]):''}" placeholder="${fmtD(current)}"
+      style="width:72px;background:var(--bg);border:1px solid var(--accent);border-radius:3px;padding:3px 5px;color:#fff;font-family:var(--font-mono);font-size:11px;outline:none;text-align:right"
+      onclick="event.stopPropagation()"
+      onkeydown="if(event.key==='Enter'){event.preventDefault();catCommitPrice('${code}',this)}if(event.key==='Escape')renderSkuTable()"
+      onblur="catCommitPrice('${code}',this)">
+    <button onclick="event.stopPropagation();delete catOverrides['${code}'];notify('Override removido','info');renderSkuTable()"
+      style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:11px">✕</button>
+  </div>`;
+  td.querySelector('input').focus();
+}
+
+function catCommitPrice(code, inp) {
+  const n = parseFloat(inp.value.replace(',','.'));
+  if (isNaN(n) || n <= 0) { renderSkuTable(); return; }
+  catOverrides[code] = n;
+  notify(`Venda R$${fmtD(n)} definida`, 'ok');
+  renderSkuTable();
+}
+
+function exportCatCSV() {
+  const data = catCurrentGame ? catSkus : [];
+  if (!data.length) { notify('Abre um jogo primeiro', 'info'); return; }
+  const rows = [['SKU','Produto','Tipo','IDR','USD','BRL Custo','Venda BRL','Taxa PIX','Net BRL','Margem%','Publicado']];
+  data.forEach(p => {
+    const { costUsd, costBrl, rrpFinal, fee, net, mPct } = catCalc(p);
+    rows.push([p.code,`"${p.name}"`,p.type,p.idr,fmtD(costUsd,3),fmtD(costBrl),fmtD(rrpFinal),fmtD(fee),fmtD(net),mPct.toFixed(2),catPublishedSet.has(p.code)?'Sim':'Não']);
+  });
+  const csv  = rows.map(r=>r.join(',')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const a = Object.assign(document.createElement('a'),{href:URL.createObjectURL(blob),download:`skus-${catCurrentGame?.code||'br'}-${new Date().toISOString().slice(0,10)}.csv`});
+  a.click();
+}
+
+// ══ PUBLICADOS ══
+async function loadPublicados() {
+  document.getElementById('pub-tbody').innerHTML = `<tr><td colspan="7" class="c" style="padding:30px"><span class="spinner"></span></td></tr>`;
+  try {
+    const rows = await sbGet(`price_benchmarks?country_code=eq.${COUNTRY}&published=eq.true&select=product_code,rrp_final,rrp_override`);
+    document.getElementById('pub-count').textContent = rows.length;
+    if (!rows.length) { document.getElementById('pub-tbody').innerHTML = `<tr><td colspan="7" class="c" style="padding:40px;color:var(--text2)">Nenhum produto publicado</td></tr>`; return; }
+    document.getElementById('pub-tbody').innerHTML = rows.map(r => {
+      const prod = catSkus.find(p=>p.code===r.product_code) || catGames.find(g=>g.code===r.product_code);
+      const { costBrl, net, mPct } = prod ? catCalc(prod) : { costBrl:0, net:0, mPct:0 };
+      const mc = mPct >= 20 ? 'mp-good' : mPct >= 10 ? 'mp-ok' : 'mp-bad';
+      return `<tr>
+        <td><div style="font-weight:500">${esc(prod?.name||r.product_code)}</div><div style="font-size:10px;color:var(--text3);font-family:var(--font-mono)">${r.product_code}</div></td>
+        <td><span class="badge badge-accent">${prod?.category||'—'}</span></td>
+        <td class="r mono" style="color:var(--text2)">${prod?fmtInt(prod.idr):'—'}</td>
+        <td class="r mono" style="font-weight:600">R$${fmtD(r.rrp_final)}</td>
+        <td class="r mono" style="color:var(--green)">R$${fmtD(net)}</td>
+        <td class="c"><span class="margin-pill ${mc}">${mPct.toFixed(1)}%</span></td>
+        <td class="c"><button class="btn btn-danger btn-sm" onclick="catUnpublish('${r.product_code}',this)">Despublicar</button></td>
+      </tr>`;
+    }).join('');
+  } catch(e) {
+    document.getElementById('pub-tbody').innerHTML = `<tr><td colspan="7" class="c" style="color:var(--red);padding:30px">${e.message}</td></tr>`;
+  }
+}
+
+async function catUnpublish(code, btn) {
+  btn.disabled = true;
+  try {
+    await sbUpsert('price_benchmarks', { product_code:code, country_code:COUNTRY, published:false, updated_at:new Date().toISOString() }, 'product_code,country_code');
+    catPublishedSet.delete(code);
+    notify(`${code} despublicado`, 'info');
+    loadPublicados();
+  } catch(e) { notify(`Erro: ${e.message}`, 'err'); btn.disabled = false; }
+}
+
+function pubFilter() {
+  const q = document.getElementById('pub-search').value.toLowerCase();
+  document.querySelectorAll('#pub-tbody tr').forEach(tr => {
+    tr.style.display = q && !tr.textContent.toLowerCase().includes(q) ? 'none' : '';
+  });
+}
+
+// ══ BANNERS ══
+async function loadBanners() {
+  document.getElementById('banners-tbody').innerHTML = `<tr><td colspan="7" class="c" style="padding:30px"><span class="spinner"></span></td></tr>`;
+  try {
+    const rows = await sbGet(`banners?country_code=eq.${COUNTRY}&brand_code=eq.${BRAND}&order=display_order.asc`);
+    if (!rows.length) {
+      document.getElementById('banners-tbody').innerHTML = `<tr><td colspan="7" class="c" style="padding:40px;color:var(--text2)">Nenhum banner criado ainda.<br><span style="font-size:11px">Clica em "+ Novo Banner" para começar.</span></td></tr>`;
+      return;
+    }
+    // Store banner data in JS map for safe editing
+    window._bannersMap = {};
+    rows.forEach(b => window._bannersMap[b.id] = b);
+
+    document.getElementById('banners-tbody').innerHTML = rows.map(b => `<tr>
+      <td class="c mono" style="color:var(--text2)">${b.display_order}</td>
+      <td><strong>${esc(b.title||'')}</strong></td>
+      <td style="color:var(--text2);font-size:11px">${esc(b.subtitle||'')}</td>
+      <td>
+        ${b.cta_text ? `<span class="badge badge-accent">${esc(b.cta_text)}</span>` : '<span style="color:var(--text3)">—</span>'}
+        ${b.cta_link ? `<div style="font-size:10px;color:var(--text3);font-family:var(--font-mono);margin-top:2px">${esc(b.cta_link)}</div>` : ''}
+      </td>
+      <td style="font-size:10px;color:var(--text3);font-family:var(--font-mono);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(b.image_url||'')}">${b.image_url ? esc(b.image_url.replace('https://res.cloudinary.com/djcrywip2/image/upload/','☁ ')) : '—'}</td>
+      <td class="c"><label class="toggle"><input type="checkbox" ${b.active?'checked':''} onchange="toggleBanner(${b.id},this)"><span class="toggle-slider"></span></label></td>
+      <td class="c" style="white-space:nowrap">
+        <button class="btn btn-secondary btn-sm" onclick="editBannerById('${b.id}')" title="Editar banner">✏️ Editar</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteBanner('${b.id}')" title="Eliminar">🗑</button>
+      </td>
+    </tr>`).join('');
+  } catch(e) {
+    // Table may not exist yet
+    document.getElementById('banners-tbody').innerHTML = `<tr><td colspan="7" class="c" style="padding:40px;color:var(--text2)">
+      <div>Tabela 'banners' não encontrada no Supabase.</div>
+      <button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="createBannersTable()">Criar tabela agora</button>
+    </td></tr>`;
+  }
+}
+
+async function createBannersTable() {
+  notify('Execute o SQL indicado no Supabase para criar as tabelas.', 'info');
+}
+
+function openBannerModal(data) {
+  document.getElementById('bm-id').value    = data?.id || '';
+  document.getElementById('bm-title').value = data?.title || '';
+  document.getElementById('bm-sub').value   = data?.subtitle || '';
+  document.getElementById('bm-cta').value   = data?.cta_text || '';
+  document.getElementById('bm-link').value  = data?.cta_link || '';
+  document.getElementById('bm-img').value   = data?.image_url || '';
+  document.getElementById('bm-bg').value    = data?.bg_color || '';
+  document.getElementById('bm-order').value = data?.display_order || 1;
+  document.getElementById('banner-modal-title').textContent = data ? 'Editar Banner' : 'Novo Banner';
+  document.getElementById('banner-modal').style.display = 'flex';
+}
+function editBannerById(id) {
+  const data = (window._bannersMap || {})[id] || (window._bannersMap || {})[parseInt(id)];
+  if (!data) { notify('Banner não encontrado — recarrega a página', 'err'); return; }
+  openBannerModal(data);
+}
+function editBanner(data) { openBannerModal(typeof data==='string'?JSON.parse(data):data); }
+function closeBannerModal() { document.getElementById('banner-modal').style.display = 'none'; }
+
+async function saveBanner() {
+  const body = {
+    title:         document.getElementById('bm-title').value.trim(),
+    subtitle:      document.getElementById('bm-sub').value.trim(),
+    cta_text:      document.getElementById('bm-cta').value.trim(),
+    cta_link:      document.getElementById('bm-link').value.trim(),
+    image_url:     document.getElementById('bm-img').value.trim(),
+    bg_color:      document.getElementById('bm-bg').value.trim(),
+    display_order: parseInt(document.getElementById('bm-order').value) || 1,
+    country_code:  COUNTRY,
+    brand_code:    BRAND,
+    active:        true,
+    updated_at:    new Date().toISOString(),
+  };
+  const id = document.getElementById('bm-id').value;
+  if (id) body.id = id;
+  try {
+    await sbUpsert('banners', body, 'id');
+    closeBannerModal();
+    loadBanners();
+    notify('Banner salvo ✓', 'ok');
+  } catch(e) { notify(`Erro: ${e.message}`, 'err'); }
+}
+
+async function toggleBanner(id, el) {
+  try {
+    await sbUpsert('banners', { id, active: el.checked, updated_at: new Date().toISOString() }, 'id');
+    notify(el.checked ? 'Banner activado' : 'Banner desactivado', 'ok');
+  } catch(e) { notify(`Erro: ${e.message}`, 'err'); el.checked = !el.checked; }
+}
+
+async function deleteBanner(id) {
+  if (!confirm('Eliminar este banner?')) return;
+  try {
+    await sbDelete('banners', 'id', id);
+    loadBanners();
+    notify('Banner eliminado', 'info');
+  } catch(e) { notify(`Erro: ${e.message}`, 'err'); }
+}
+
+// ══ DESTAQUES ══
+async function loadDestaques() {
+  try {
+    const rows = await sbGet(`featured_games?country_code=eq.${COUNTRY}&brand_code=eq.${BRAND}&order=display_order.asc`);
+    const el = document.getElementById('destaques-list');
+    if (!rows.length) {
+      el.innerHTML = `<div class="empty"><div class="icon">⭐</div><p>Nenhum jogo em destaque</p><span>Clica em "+ Adicionar Jogo"</span></div>`;
+      return;
+    }
+    el.innerHTML = rows.map(g => `
+      <div class="card" style="position:relative;padding:14px">
+        ${g.badge ? `<span class="badge badge-amber" style="position:absolute;top:8px;right:8px">${g.badge}</span>` : ''}
+        <div style="font-weight:600;margin-bottom:4px">${esc(g.game_name||g.game_code)}</div>
+        <div style="font-size:10px;color:var(--text3);font-family:var(--font-mono)">${g.game_code}</div>
+        <div style="font-size:10px;color:var(--text2);margin-top:6px">Ordem: ${g.display_order}</div>
+        <div style="display:flex;gap:6px;margin-top:10px">
+          <label class="toggle"><input type="checkbox" ${g.active?'checked':''} onchange="toggleDestaque(${g.id},this)"><span class="toggle-slider"></span></label>
+          <button class="btn btn-danger btn-sm" onclick="deleteDestaque(${g.id})">🗑</button>
+        </div>
+      </div>`).join('');
+  } catch(e) {
+    document.getElementById('destaques-list').innerHTML = `<div class="empty"><p style="color:var(--red)">${e.message}</p></div>`;
+  }
+}
+
+function openDestaqueModal() {
+  const sel = document.getElementById('dm-game');
+  const games = catGames.length ? catGames : [];
+  sel.innerHTML = '<option value="">Seleccionar jogo…</option>' +
+    games.map(g => `<option value="${esc(g.code)}">${esc(g.name)}</option>`).join('');
+  document.getElementById('dest-modal').style.display = 'flex';
+}
+function closeDestaqueModal() { document.getElementById('dest-modal').style.display = 'none'; }
+
+async function saveDestaque() {
+  const gameCode = document.getElementById('dm-game').value;
+  if (!gameCode) { notify('Selecciona um jogo', 'err'); return; }
+  const body = {
+    game_code:     gameCode,
+    game_name:     gameCode,
+    badge:         document.getElementById('dm-badge').value,
+    cta_link:      document.getElementById('dm-link').value.trim(),
+    display_order: parseInt(document.getElementById('dm-order').value) || 1,
+    country_code:  COUNTRY,
+    brand_code:    BRAND,
+    active:        true,
+    updated_at:    new Date().toISOString(),
+  };
+  try {
+    await sbUpsert('featured_games', body);
+    closeDestaqueModal();
+    loadDestaques();
+    notify('Jogo em destaque adicionado ✓', 'ok');
+  } catch(e) { notify(`Erro: ${e.message}`, 'err'); }
+}
+
+async function toggleDestaque(id, el) {
+  try { await sbUpsert('featured_games', { id, active:el.checked, updated_at:new Date().toISOString() }); notify('Actualizado','ok'); }
+  catch(e) { notify(`Erro:${e.message}`,'err'); el.checked=!el.checked; }
+}
+async function deleteDestaque(id) {
+  if (!confirm('Remover este jogo dos destaques?')) return;
+  try { await sbDelete('featured_games','id',id); loadDestaques(); notify('Removido','info'); }
+  catch(e) { notify(`Erro:${e.message}`,'err'); }
+}
+
+// ══ TEXTOS & SEO ══
+async function loadTextos() {
+  document.getElementById('seo-ctx-label').textContent = `(${COUNTRY_NAMES[COUNTRY]})`;
+  try {
+    const rows = await sbGet(`site_content?country_code=eq.${COUNTRY}&brand_code=eq.${BRAND}`);
+    const map  = {};
+    rows.forEach(r => map[r.content_key] = r.content_value);
+    document.getElementById('seo-title').value = map['seo_title'] || '';
+    document.getElementById('seo-desc').value  = map['seo_description'] || '';
+    document.getElementById('txt-h1').value    = map['homepage_h1'] || '';
+    document.getElementById('txt-sub').value   = map['homepage_subtitle'] || '';
+    document.getElementById('txt-cta').value   = map['homepage_cta'] || '';
+  } catch {}
+}
+
+async function saveContent(key, value) {
+  await sbUpsert('site_content', { content_key:key, content_value:value, country_code:COUNTRY, brand_code:BRAND, updated_at:new Date().toISOString() });
+}
+async function saveSEO() {
+  try {
+    await saveContent('seo_title',       document.getElementById('seo-title').value);
+    await saveContent('seo_description', document.getElementById('seo-desc').value);
+    notify('SEO salvo ✓', 'ok');
+  } catch(e) { notify(`Erro: ${e.message}`, 'err'); }
+}
+async function saveTextos() {
+  try {
+    await saveContent('homepage_h1',       document.getElementById('txt-h1').value);
+    await saveContent('homepage_subtitle', document.getElementById('txt-sub').value);
+    await saveContent('homepage_cta',      document.getElementById('txt-cta').value);
+    notify('Textos salvos ✓', 'ok');
+  } catch(e) { notify(`Erro: ${e.message}`, 'err'); }
+}
+
+// ══ PAÍSES & PREÇOS ══
+async function loadPrecos() {
+  document.getElementById('preco-country').textContent = `${COUNTRY_NAMES[COUNTRY]} (${COUNTRY.toUpperCase()})`;
+  try {
+    const rows = await sbGet(`country_configs?country_code=eq.${COUNTRY}`);
+    if (rows.length) {
+      const r = rows[0];
+      document.getElementById('p-rate').value    = r.exchange_rate_from_idr || 0.00034;
+      document.getElementById('p-margin').value  = r.margin_percent || 25;
+      document.getElementById('p-tax').value     = r.tax_percent || 0;
+      document.getElementById('p-taxname').value = r.tax_name || '';
+      document.getElementById('p-taxincl').value = r.tax_included_in_price ? 'true' : 'false';
+    }
+  } catch {}
+  try {
+    const rows = await sbGet(`payment_methods?country_code=eq.${COUNTRY}&order=method_name.asc`);
+    document.getElementById('pm-tbody').innerHTML = rows.length
+      ? rows.map(pm => `<tr>
+          <td>${esc(pm.method_name||pm.method_code||'')}</td>
+          <td class="r mono">${pm.transaction_cost_percent || 0}%</td>
+          <td class="r mono">${pm.fixed_cost || 0}</td>
+          <td class="c"><span class="badge ${pm.active!==false?'badge-green':'badge-red'}">${pm.active!==false?'Activo':'Inactivo'}</span></td>
+        </tr>`).join('')
+      : `<tr><td colspan="4" class="c" style="padding:20px;color:var(--text2)">Sem métodos configurados</td></tr>`;
+  } catch(e) {
+    document.getElementById('pm-tbody').innerHTML = `<tr><td colspan="4" class="c" style="color:var(--text2);padding:20px">${e.message}</td></tr>`;
+  }
+}
+
+async function saveCountryConfig() {
+  try {
+    await sbUpsert('country_configs', {
+      country_code:            COUNTRY,
+      exchange_rate_from_idr:  parseFloat(document.getElementById('p-rate').value),
+      margin_percent:          parseFloat(document.getElementById('p-margin').value),
+      tax_percent:             parseFloat(document.getElementById('p-tax').value),
+      tax_name:                document.getElementById('p-taxname').value,
+      tax_included_in_price:   document.getElementById('p-taxincl').value === 'true',
+      updated_at:              new Date().toISOString(),
+    });
+    catConfig.idrToBrl = parseFloat(document.getElementById('p-rate').value);
+    catConfig.margin   = parseFloat(document.getElementById('p-margin').value) / 100;
+    catConfig.tax      = parseFloat(document.getElementById('p-tax').value) / 100;
+    notify('Configuração salva ✓', 'ok');
+  } catch(e) { notify(`Erro: ${e.message}`, 'err'); }
+}
+
+// ══ VOUCHERS ══
+let allVouchers = [];
+async function loadVouchers() {
+  document.getElementById('v-tbody').innerHTML = `<tr><td colspan="6" class="c" style="padding:25px"><span class="spinner"></span></td></tr>`;
+  try {
+    allVouchers = await sbGet('bonus_vouchers?order=created_at.desc&limit=200&select=id,code,product_code,status,redeemed_at,user_id,redeem_price,redeem_currency');
+    document.getElementById('v-count').textContent = `${allVouchers.length} vouchers`;
+    renderVouchers(allVouchers);
+  } catch(e) { document.getElementById('v-tbody').innerHTML = `<tr><td colspan="6" class="c" style="color:var(--red)">${e.message}</td></tr>`; }
+}
+
+function renderVouchers(rows) {
+  document.getElementById('v-tbody').innerHTML = !rows.length
+    ? `<tr><td colspan="6" class="c" style="padding:30px;color:var(--text2)">Nenhum voucher</td></tr>`
+    : rows.map(v => `<tr>
+        <td class="mono">${v.code}</td>
+        <td style="font-size:11px;color:var(--text2)">${esc(v.product_code||'')}</td>
+        <td class="r">${v.redeem_price > 0 ? `R$${fmtD(v.redeem_price)}` : '<span class="badge badge-green">Grátis</span>'}</td>
+        <td class="c"><span class="badge ${v.status==='available'?'badge-green':'badge-amber'}">${v.status}</span></td>
+        <td style="font-size:11px;color:var(--text2)">${v.redeemed_at?new Date(v.redeemed_at).toLocaleDateString('pt-BR'):'—'}</td>
+        <td style="font-size:11px;color:var(--text3)">${v.user_id?v.user_id.slice(0,8)+'…':'—'}</td>
+      </tr>`).join('');
+}
+
+function voucherFilter() {
+  const q  = document.getElementById('v-search').value.toLowerCase();
+  const st = document.getElementById('v-status').value;
+  const f  = allVouchers.filter(v => {
+    if (q && !v.code.toLowerCase().includes(q) && !(v.product_code||'').toLowerCase().includes(q)) return false;
+    if (st && v.status !== st) return false;
+    return true;
+  });
+  renderVouchers(f);
+}
+
+async function generateVouchers() {
+  const prefix = document.getElementById('v-prefix').value.trim().toUpperCase();
+  const skus   = document.getElementById('v-skus').value.trim().split(',').map(s=>s.trim()).filter(Boolean);
+  const price  = parseFloat(document.getElementById('v-price').value) || 0;
+  const qty    = Math.min(parseInt(document.getElementById('v-qty').value) || 1, 500);
+  const sponsor= document.getElementById('v-sponsor').value.trim();
+  if (!prefix) { notify('Prefixo obrigatório', 'err'); return; }
+  if (!skus.length) { notify('Pelo menos 1 SKU', 'err'); return; }
+  const chars  = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  const codes  = [];
+  for (let i = 0; i < qty; i++) {
+    let r = '';
+    for (let j = 0; j < 6; j++) r += chars[Math.floor(Math.random()*chars.length)];
+    codes.push({
+      code: `${prefix}-${r}`, product_code: JSON.stringify(skus),
+      redeem_price: price, redeem_currency: 'BRL', status: 'available',
+      sponsor_id: sponsor || null, created_at: new Date().toISOString()
+    });
+  }
+  try {
+    await sbUpsert('bonus_vouchers', codes);
+    notify(`${qty} vouchers gerados ✓`, 'ok');
+    loadVouchers();
+  } catch(e) { notify(`Erro: ${e.message}`, 'err'); }
+}
+
+// ══ PEDIDOS ══
+async function loadPedidos() {
+  try {
+    const rows = await sbGet('orders?order=created_at.desc&limit=50&select=id,product_code,final_price_local,currency_code,status,created_at,payment_method');
+    document.getElementById('ped-tbody').innerHTML = !rows.length
+      ? `<tr><td colspan="6" class="c" style="padding:30px;color:var(--text2)">Sem pedidos</td></tr>`
+      : rows.map(o => `<tr>
+          <td class="mono" style="font-size:11px">${o.id.slice(0,8)}…</td>
+          <td style="font-size:11px">${esc(o.product_code||'')}</td>
+          <td class="r">${o.currency_code} ${fmtD(o.final_price_local)}</td>
+          <td style="font-size:11px">${o.payment_method||'—'}</td>
+          <td class="c"><span class="badge ${o.status==='completed'?'badge-green':o.status==='failed'?'badge-red':'badge-amber'}">${o.status||'—'}</span></td>
+          <td style="font-size:11px;color:var(--text2)">${new Date(o.created_at).toLocaleDateString('pt-BR')}</td>
+        </tr>`).join('');
+  } catch(e) { document.getElementById('ped-tbody').innerHTML = `<tr><td colspan="6" class="c" style="color:var(--red)">${e.message}</td></tr>`; }
+}
+
+async function lookupOrder() {
+  const tid = document.getElementById('ped-tid').value.trim();
+  if (!tid) return;
+  document.getElementById('ped-result').innerHTML = '<span class="spinner"></span>';
+  try {
+    const r = await fetch(`${PROXY}/gateway`, {
+      method:'POST', headers:{'Content-Type':'application/json','x-env':ENV},
+      body:JSON.stringify({endpoint:'/order_status',method:'GET',payload:{trx_id:tid}})
+    });
+    const j = await r.json();
+    document.getElementById('ped-result').innerHTML = `<div class="card"><pre style="font-size:11px;color:var(--text2);white-space:pre-wrap">${JSON.stringify(j.data,null,2)}</pre></div>`;
+  } catch(e) { document.getElementById('ped-result').innerHTML = `<div style="color:var(--red)">${e.message}</div>`; }
+}
+
+// ══ MONITOR ══
+async function loadMonitorStatus() {
+  try {
+    const r = await fetch(`${PROXY}/monitor/status`);
+    const j = await r.json();
+    const statusColor = j.lastSyncStatus === 'ok' ? 'var(--green)' : j.lastSyncStatus === 'error' ? 'var(--red)' : j.lastSyncStatus === 'never' ? 'var(--text2)' : 'var(--amber)';
+    const statusIcon  = j.lastSyncStatus === 'ok' ? '🟢' : j.lastSyncStatus === 'error' ? '🔴' : j.lastSyncStatus === 'never' ? '⚪' : '🟡';
+    document.getElementById('mon-sync-status').innerHTML = `
+      <div>${statusIcon} <strong style="color:${statusColor}">${j.lastSyncStatus === 'never' ? 'Nunca sincronizado' : j.lastSyncStatus === 'ok' ? 'OK' : j.lastSyncStatus === 'partial' ? 'Parcial' : 'Erro'}</strong></div>
+      <div>Último sync: ${j.lastSync ? new Date(j.lastSync).toLocaleString('pt-BR') : '—'}</div>
+      <div>Próximo sync: a cada 30 min</div>
+      ${j.errors && j.errors.length ? `<div style="color:var(--red);font-size:11px">Erros: ${j.errors.join(', ')}</div>` : ''}`;
+    document.getElementById('mon-skus').textContent      = j.skusChecked   ?? '—';
+    document.getElementById('mon-alerts').textContent    = j.alertsCreated ?? '—';
+    document.getElementById('mon-paused').textContent    = j.autoPaused    ?? '—';
+    document.getElementById('mon-failovers').textContent = j.failovers     ?? '—';
+  } catch(e) {
+    document.getElementById('mon-sync-status').innerHTML = `<div style="color:var(--red)">🔴 Proxy offline: ${e.message}</div>`;
+  }
+}
+
+async function triggerSync() {
+  try {
+    const btn = event.target;
+    btn.disabled = true; btn.textContent = '⏳ A sincronizar…';
+    await fetch(`${PROXY}/monitor/sync`, { method: 'POST' });
+    notify('Sync iniciado — aguarda 30s e recarrega o status', 'info');
+    setTimeout(() => { loadMonitorStatus(); btn.disabled = false; btn.textContent = '▶ Sync Agora'; }, 8000);
+  } catch(e) { notify('Erro: ' + e.message, 'err'); }
+}
+
+async function checkProxy() {
+  const el = document.getElementById('proxy-status');
+  el.innerHTML = '<span class="spinner"></span> A verificar…';
+  try {
+    const r = await fetch(`${PROXY}/health`);
+    const j = await r.json();
+    el.innerHTML = `
+      <div>🟢 <strong>Proxy Online</strong></div>
+      <div>IP: ${j.ip || '—'}</div>
+      <div>Key: ${j.hasKey ? '✓ Carregada' : '✗ Não encontrada'}</div>
+      <div>Supabase: ${j.supabase ? '✓ Configurado' : '✗ Não configurado'}</div>
+      <div>Timestamp: ${new Date(j.ts).toLocaleTimeString('pt-BR')}</div>`;
+  } catch(e) { el.innerHTML = `<div style="color:var(--red)">🔴 Proxy offline: ${e.message}</div>`; }
+}
+
+async function saveWebhooks() {
+  notify('Webhooks: configure directamente no painel Lapak.', 'info');
+}
+
+// ══ ALERTAS ══
+let allAlerts = [];
+
+async function loadAlertas() {
+  try {
+    const r = await fetch(`${PROXY}/monitor/alerts`);
+    const j = await r.json();
+    allAlerts = j.alerts || [];
+    document.getElementById('alert-count').textContent = `${allAlerts.length} alertas`;
+    alertFilter();
+  } catch(e) {
+    document.getElementById('alert-tbody').innerHTML = `<tr><td colspan="6" class="c" style="padding:30px;color:var(--red)">${e.message}</td></tr>`;
+  }
+}
+
+function alertFilter() {
+  const type = document.getElementById('alert-type-filter').value;
+  const rows = allAlerts.filter(a => !type || a.alert_type === type);
+  const alertBadge = {
+    'unavailable':    'badge-red',
+    'restored':       'badge-green',
+    'price_change':   'badge-amber',
+    'margin_negative':'badge-red',
+    'failover':       'badge-blue',
+  };
+  const alertLabel = {
+    'unavailable':    '🔴 Indisponível',
+    'restored':       '🟢 Restaurado',
+    'price_change':   '🟡 Preço Mudou',
+    'margin_negative':'🔴 Margem Neg.',
+    'failover':       '🔵 Failover',
+  };
+  document.getElementById('alert-tbody').innerHTML = !rows.length
+    ? `<tr><td colspan="6" class="c" style="padding:30px;color:var(--text2)">Sem alertas pendentes ✓</td></tr>`
+    : rows.map(a => `<tr>
+        <td class="mono" style="font-size:11px">${esc(a.sku_code||'—')}</td>
+        <td><span class="badge ${alertBadge[a.alert_type]||'badge-accent'}">${alertLabel[a.alert_type]||a.alert_type}</span></td>
+        <td class="r mono" style="font-size:11px">${esc(a.old_value||'—')}</td>
+        <td class="r mono" style="font-size:11px">${esc(a.new_value||'—')}</td>
+        <td style="font-size:11px;color:var(--text2)">${new Date(a.created_at).toLocaleString('pt-BR')}</td>
+        <td class="c"><button class="btn btn-sm" style="background:var(--green-bg);color:var(--green);border:1px solid rgba(16,185,129,.2)" onclick="resolveAlert('${a.id}',this)">✓</button></td>
+      </tr>`).join('');
+}
+
+async function resolveAlert(id, btn) {
+  try {
+    btn.disabled = true; btn.textContent = '…';
+    await fetch(`${PROXY}/monitor/alerts/${id}/resolve`, { method: 'POST' });
+    allAlerts = allAlerts.filter(a => a.id !== id);
+    document.getElementById('alert-count').textContent = `${allAlerts.length} alertas`;
+    alertFilter();
+    notify('Alerta resolvido ✓', 'ok');
+  } catch(e) { notify('Erro: ' + e.message, 'err'); btn.disabled = false; btn.textContent = '✓'; }
+}
+
+async function resolveAllAlerts() {
+  if (!allAlerts.length) { notify('Sem alertas para resolver', 'info'); return; }
+  if (!confirm(`Resolver todos os ${allAlerts.length} alertas?`)) return;
+  for (const a of allAlerts) {
+    await fetch(`${PROXY}/monitor/alerts/${a.id}/resolve`, { method: 'POST' }).catch(()=>{});
+  }
+  allAlerts = [];
+  document.getElementById('alert-count').textContent = '0 alertas';
+  alertFilter();
+  notify('Todos os alertas resolvidos ✓', 'ok');
+}
+
+// ══ CONFIG ══
+function saveConfig() {
+  ENV = document.getElementById('cfg-env').value;
+  document.getElementById('sf-env').textContent = ENV.toUpperCase();
+  document.getElementById('sf-env').className = 'env-badge ' + ENV;
+  document.getElementById('ds-env').textContent = ENV.toUpperCase();
+  notify('Config salva ✓', 'ok');
+}
+
+// ══ UTILS ══
+function fmtD(n, d=2) { return (Math.round(n*Math.pow(10,d))/Math.pow(10,d)).toFixed(d); }
+function fmtInt(n) { return Math.round(n).toLocaleString('pt-BR'); }
+function esc(s) { return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function notify(msg, type='info') {
+  const el = document.getElementById('notif');
+  const icons = {ok:'✓',err:'✕',info:'ℹ'};
+  el.innerHTML = `<span>${icons[type]||'•'}</span> ${msg}`;
+  el.className = `notif ${type} show`;
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// ── Check session on load (after all declarations) ──
+if (sessionStorage.getItem(AUTH_KEY) === '1') {
+  document.getElementById('auth-overlay').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  initAdmin();
+}
+
+// ══ JOGOS ══
+let _editingGameId = null;
+
+async function loadGames() {
+  try {
+    const rows = await sbGet(`games?country_code=eq.${COUNTRY}&order=display_order.asc,name.asc`);
+    const tbody = document.getElementById('games-tbody');
+    if (!rows || !rows.length) {
+      tbody.innerHTML = `<tr><td colspan="9" class="c" style="padding:40px;color:var(--text2)">Nenhum jogo criado ainda.<br><span style="font-size:11px">Clica em "+ Novo Jogo" para começar.</span></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = rows.map(g => `<tr>
+      <td class="c">
+        ${g.thumbnail_url
+          ? `<img src="${g.thumbnail_url}" style="width:44px;height:44px;border-radius:8px;object-fit:cover">`
+          : `<div style="width:44px;height:44px;border-radius:8px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:20px">${g.emoji||'🎮'}</div>`}
+      </td>
+      <td>
+        <div style="font-weight:500;font-size:12px">${esc(g.name)}</div>
+        <div style="font-size:10px;font-family:var(--font-mono);color:var(--text3)">${esc(g.slug)}</div>
+      </td>
+      <td class="c"><span class="badge badge-blue">${esc(g.category_code||'—')}</span></td>
+      <td class="c"><span class="badge ${g.type==='dtu'?'badge-accent':'badge-green'}">${g.type==='dtu'?'DTU':'Gift Card'}</span></td>
+      <td class="c">${g.is_popular?'<span class="badge badge-amber">🔥 Sim</span>':'<span style="color:var(--text3);font-size:11px">—</span>'}</td>
+      <td class="c">${g.is_featured?'<span class="badge badge-accent">⭐ Sim</span>':'<span style="color:var(--text3);font-size:11px">—</span>'}</td>
+      <td class="r" style="font-size:12px">${g.min_price_brl>0?`R$ ${fmtD(g.min_price_brl)}`:'—'}</td>
+      <td class="c">
+        <label class="toggle"><input type="checkbox" ${g.active?'checked':''} onchange="toggleGameActive('${g.id}',this.checked)"><span class="toggle-slider"></span></label>
+      </td>
+      <td class="c" style="white-space:nowrap">
+        <button class="btn btn-secondary btn-sm" onclick="openGameModal('${g.id}')">✏ Editar</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteGame('${g.id}','${esc(g.name)}')">✕</button>
+      </td>
+    </tr>`).join('');
+  } catch(e) {
+    document.getElementById('games-tbody').innerHTML = `<tr><td colspan="9" class="c" style="color:var(--red)">${e.message}</td></tr>`;
+  }
+}
+
+async function openGameModal(id) {
+  _editingGameId = id || null;
+  let g = {};
+  if (id) {
+    const rows = await sbGet(`games?id=eq.${id}&limit=1`);
+    g = rows?.[0] || {};
+  }
+  document.getElementById('gm2-id').value      = g.id || '';
+  document.getElementById('gm2-name').value    = g.name || '';
+  document.getElementById('gm2-slug').value    = g.slug || '';
+  document.getElementById('gm2-cat').value     = g.category_code || '';
+  document.getElementById('gm2-type').value    = g.type || 'dtu';
+  document.getElementById('gm2-emoji').value   = g.emoji || '🎮';
+  document.getElementById('gm2-thumb').value   = g.thumbnail_url || '';
+  document.getElementById('gm2-desc').value    = g.description || '';
+  document.getElementById('gm2-order').value   = g.display_order || 0;
+  document.getElementById('gm2-popular').checked  = !!g.is_popular;
+  document.getElementById('gm2-featured').checked = !!g.is_featured;
+  document.getElementById('gm2-active').checked   = g.active !== false;
+  document.getElementById('gm2-thumb-preview').src = g.thumbnail_url || '';
+  document.getElementById('gm2-thumb-preview').style.display = g.thumbnail_url ? '' : 'none';
+  document.getElementById('gm2-title').textContent = id ? `✏ Editar — ${g.name}` : '+ Novo Jogo';
+  document.getElementById('gm2-msg').textContent = '';
+  document.getElementById('game-modal').style.display = 'flex';
+}
+
+function closeGameModal() {
+  document.getElementById('game-modal').style.display = 'none';
+}
+
+function autoSlug(name) {
+  return name.toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-z0-9]+/g,'-')
+    .replace(/^-|-$/g,'');
+}
+
+async function saveGame() {
+  const msg = document.getElementById('gm2-msg');
+  const name = document.getElementById('gm2-name').value.trim();
+  const slug = document.getElementById('gm2-slug').value.trim() || autoSlug(name);
+  if (!name) { msg.style.color='var(--red)'; msg.textContent='Nome obrigatório'; return; }
+  if (!slug)  { msg.style.color='var(--red)'; msg.textContent='Slug obrigatório'; return; }
+  msg.style.color='var(--text2)'; msg.textContent='A guardar…';
+
+  const body = {
+    name, slug,
+    category_code: document.getElementById('gm2-cat').value.trim().toUpperCase() || null,
+    type:          document.getElementById('gm2-type').value,
+    emoji:         document.getElementById('gm2-emoji').value.trim() || '🎮',
+    thumbnail_url: document.getElementById('gm2-thumb').value.trim() || null,
+    description:   document.getElementById('gm2-desc').value.trim() || null,
+    display_order: parseInt(document.getElementById('gm2-order').value) || 0,
+    is_popular:    document.getElementById('gm2-popular').checked,
+    is_featured:   document.getElementById('gm2-featured').checked,
+    active:        document.getElementById('gm2-active').checked,
+    country_code:  COUNTRY,
+    brand_code:    BRAND,
+  };
+
+  try {
+    if (_editingGameId) {
+      await sbUpsert('games', { ...body, id: _editingGameId }, 'id');
+    } else {
+      await sbUpsert('games', body, 'id');
+    }
+    msg.style.color='var(--green)'; msg.textContent='✓ Guardado!';
+    setTimeout(() => { closeGameModal(); loadGames(); }, 800);
+  } catch(e) {
+    msg.style.color='var(--red)'; msg.textContent='✗ ' + e.message;
+  }
+}
+
+async function toggleGameActive(id, active) {
+  await sbUpsert('games', { id, active }, 'id');
+  notify(active ? 'Jogo activado' : 'Jogo desactivado', 'ok');
+}
+
+async function deleteGame(id, name) {
+  if (!confirm(`Eliminar o jogo "${name}"? Esta acção não pode ser desfeita.`)) return;
+  await sbDelete('games', 'id', id);
+  notify(`"${name}" eliminado`, 'ok');
+  loadGames();
+}
+
+function updateThumbPreview() {
+  const url = document.getElementById('gm2-thumb').value.trim();
+  const img = document.getElementById('gm2-thumb-preview');
+  if (url) { img.src = url; img.style.display = ''; }
+  else { img.style.display = 'none'; }
+}
+
+function uploadToCloudinary() {
+  if (typeof cloudinary === 'undefined') {
+    notify('Widget Cloudinary não carregado. Insere a URL manualmente.', 'info');
+    return;
+  }
+  const widget = cloudinary.createUploadWidget({
+    cloudName: 'djcrywip2',
+    uploadPreset: 'recarga_games_unsigned',
+    folder: 'recarga-games/thumbnails',
+    sources: ['local','url','camera'],
+    cropping: true,
+    croppingAspectRatio: 1,
+    maxFileSize: 500000,
+    clientAllowedFormats: ['jpg','jpeg','png','webp'],
+  }, (err, result) => {
+    if (!err && result.event === 'success') {
+      const url = result.info.secure_url;
+      document.getElementById('gm2-thumb').value = url;
+      updateThumbPreview();
+      notify('Imagem carregada ✓', 'ok');
+    }
+  });
+  widget.open();
+}
+
+let _groupModalSkus = []; // SKUs do jogo actual
+let _groupSelectedSkus = []; // SKUs seleccionados para novo grupo
+let _groupModalCategory = ''; // category_code do jogo actual
+
+function openGroupModal() {
+  // Pegar SKUs actuais do catálogo visível
+  _groupSelectedSkus = [];
+  _groupModalCategory = document.getElementById('cat-sku-title')?.textContent?.trim() || '';
+  document.getElementById('gm-game-name').textContent = _groupModalCategory;
+  document.getElementById('gm-name').value = '';
+  document.getElementById('gm-msg').textContent = '';
+  document.getElementById('group-modal').style.display = 'flex';
+  loadGroupsForGame();
+  renderSkuPicker();
+}
+
+function closeGroupModal() {
+  document.getElementById('group-modal').style.display = 'none';
+}
+
+function renderSkuPicker() {
+  // Ler SKUs da tabela actual
+  const rows = document.querySelectorAll('#cat-sku-tbody tr');
+  const picker = document.getElementById('gm-sku-picker');
+  if (!rows.length) {
+    picker.innerHTML = '<div style="padding:12px;color:var(--text3);font-size:12px">Nenhum SKU carregado</div>';
+    return;
+  }
+  let html = '';
+  rows.forEach((row, i) => {
+    const name = row.querySelector('td:nth-child(2) div:first-child')?.textContent?.trim() || '';
+    const code = row.querySelector('td:nth-child(2) div:last-child')?.textContent?.trim() || '';
+    const idr  = row.querySelector('td:nth-child(4)')?.textContent?.trim() || '';
+    const sel  = _groupSelectedSkus.includes(code);
+    const pos  = _groupSelectedSkus.indexOf(code);
+    html += `<div onclick="toggleGroupSku('${code}')" style="display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .1s;${sel?'background:var(--accent-bg)':''}">
+      <div style="width:22px;height:22px;border-radius:50%;background:${sel?'var(--accent)':'var(--border2)'};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0">${sel?pos+1:'+'}</div>
+      <div style="flex:1">
+        <div style="font-size:12px;font-weight:500;color:var(--text)">${name}</div>
+        <div style="font-size:10px;font-family:var(--font-mono);color:var(--text3)">${code}</div>
+      </div>
+      <div style="font-size:11px;color:var(--text2)">${idr} IDR</div>
+      ${sel && pos===0 ? '<span style="font-size:9px;font-weight:700;color:var(--accent2);background:var(--accent-bg);padding:2px 6px;border-radius:3px">PRINCIPAL</span>' : ''}
+      ${sel && pos>0  ? `<span style="font-size:9px;font-weight:700;color:var(--text2);background:var(--surface);padding:2px 6px;border-radius:3px">BACKUP ${pos}</span>` : ''}
+    </div>`;
+  });
+  picker.innerHTML = html || '<div style="padding:12px;color:var(--text3)">Sem SKUs disponíveis</div>';
+}
+
+function toggleGroupSku(code) {
+  const idx = _groupSelectedSkus.indexOf(code);
+  if (idx === -1) _groupSelectedSkus.push(code);
+  else _groupSelectedSkus.splice(idx, 1);
+  renderSkuPicker();
+}
+
+async function loadGroupsForGame() {
+  const listEl = document.getElementById('gm-groups-list');
+  listEl.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text3)"><span class="spinner"></span></div>';
+  // Populate game selector
+  try {
+    const games = await sbGet(`games?country_code=eq.${document.getElementById('countrySel')?.value||'br'}&active=eq.true&order=name.asc`);
+    const sel = document.getElementById('gm-game-sel');
+    if (sel && games) {
+      const curVal = sel.value;
+      sel.innerHTML = '<option value="">— Seleccionar jogo —</option>' +
+        games.map(g => `<option value="${g.id}" ${curVal===g.id?'selected':''}>${esc(g.name)}</option>`).join('');
+      if (!curVal && window._catCurrentCode) {
+        const match = games.find(g => g.category_code === window._catCurrentCode);
+        if (match) sel.value = match.id;
+      }
+    }
+  } catch(e) { console.warn('game sel:', e.message); }
+  try {
+    const cc = document.getElementById('countrySel')?.value || 'br';
+    const r = await sbGet(`product_groups?country_code=eq.${cc}&order=created_at.desc&select=id,display_name,category_code,status,game_id`);
+    if (!r || !r.length) {
+      listEl.innerHTML = '<div style="font-size:12px;color:var(--text3);padding:8px 0">Nenhum grupo criado ainda para este país.</div>';
+      return;
+    }
+    // Para cada grupo, buscar os SKUs
+    const groups = await Promise.all(r.map(async g => {
+      const skus = await sbGet(`product_group_skus?group_id=eq.${g.id}&order=priority.asc&select=sku_code,priority,status,auto_paused`);
+      return { ...g, skus: skus || [] };
+    }));
+    listEl.innerHTML = groups.map((g, gi) => `
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:12px 14px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div>
+            <span style="font-size:12px;font-weight:600;color:var(--text)">${esc(g.display_name)}</span>
+            <span style="font-size:10px;color:var(--text3);margin-left:8px">${g.category_code}</span>
+          </div>
+          <button onclick="deleteGroup('${g.id}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px;padding:2px 6px;border-radius:3px;transition:color .1s" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text3)'">✕ Eliminar</button>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          ${g.skus.map((s, si) => `
+            <div style="display:flex;align-items:center;gap:6px;background:var(--bg);border:1px solid ${si===0?'rgba(124,106,247,.4)':s.auto_paused?'rgba(239,68,68,.3)':'var(--border)'};border-radius:var(--rs);padding:5px 10px">
+              <div style="width:18px;height:18px;border-radius:50%;background:${si===0?'var(--accent)':s.auto_paused?'var(--red)':'var(--border2)'};display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;flex-shrink:0">${si+1}</div>
+              <div>
+                <div style="font-size:10px;font-weight:600;color:${si===0?'var(--accent2)':s.auto_paused?'var(--red)':'var(--text3)'}">${si===0?'PRINCIPAL':'BACKUP '+si}${s.auto_paused?' ⚠':''}${s.status==='unavailable'?' (indisp.)':''}</div>
+                <div style="font-size:11px;font-family:var(--font-mono);color:var(--text)">${esc(s.sku_code)}</div>
+              </div>
+            </div>`).join('')}
+        </div>
+      </div>`).join('');
+  } catch(e) {
+    listEl.innerHTML = `<div style="color:var(--red);font-size:12px">Erro: ${e.message}</div>`;
+  }
+}
+
+async function saveGroup() {
+  const name = document.getElementById('gm-name').value.trim();
+  const msg  = document.getElementById('gm-msg');
+  if (!name)                        { msg.style.color='var(--red)'; msg.textContent='Nome obrigatório'; return; }
+  if (_groupSelectedSkus.length < 2){ msg.style.color='var(--red)'; msg.textContent='Selecciona pelo menos 2 SKUs'; return; }
+  msg.textContent = 'A guardar…'; msg.style.color = 'var(--text2)';
+  try {
+    const cc = document.getElementById('countrySel')?.value || 'br';
+    const catCode = window._catCurrentCode || '';
+    // Criar grupo
+    const r = await fetch(`${SB_URL}/rest/v1/product_groups`, {
+      method: 'POST',
+      headers: { apikey:SB_KEY, Authorization:`Bearer ${SB_KEY}`, 'Content-Type':'application/json', Prefer:'return=representation' },
+      body: JSON.stringify({ display_name:name, brand_code:'rg', country_code:cc, category_code:catCode, status:'active', game_id:document.getElementById('gm-game-sel')?.value||null })
+    });
+    if (!r.ok) throw new Error(await r.text());
+    const grp = await r.json();
+    const gid = Array.isArray(grp) ? grp[0].id : grp.id;
+    // Criar SKUs do grupo
+    const skuRows = _groupSelectedSkus.map((sku, i) => ({
+      group_id:gid, sku_code:sku, priority:i+1, status:'active', auto_paused:false
+    }));
+    const r2 = await fetch(`${SB_URL}/rest/v1/product_group_skus`, {
+      method: 'POST',
+      headers: { apikey:SB_KEY, Authorization:`Bearer ${SB_KEY}`, 'Content-Type':'application/json', Prefer:'return=minimal' },
+      body: JSON.stringify(skuRows)
+    });
+    if (!r2.ok) throw new Error(await r2.text());
+    msg.style.color = 'var(--green)';
+    msg.textContent = `✓ Grupo "${name}" criado com ${_groupSelectedSkus.length} SKUs`;
+    document.getElementById('gm-name').value = '';
+    _groupSelectedSkus = [];
+    renderSkuPicker();
+    loadGroupsForGame();
+  } catch(e) {
+    msg.style.color = 'var(--red)';
+    msg.textContent = '✗ ' + e.message;
+  }
+}
+
+async function deleteGroup(id) {
+  if (!confirm('Eliminar este grupo? Os SKUs voltam a ser independentes.')) return;
+  await fetch(`${SB_URL}/rest/v1/product_groups?id=eq.${id}`, {
+    method: 'DELETE',
+    headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+  });
+  loadGroupsForGame();
+  notify('Grupo eliminado', 'ok');
+}
+</script>
+
+<!-- ══ JOGO MODAL ══ -->
+<div id="game-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:8000;align-items:center;justify-content:center">
+  <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:24px;width:580px;max-width:95vw;max-height:90vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+      <div style="font-weight:700;font-size:14px" id="gm2-title">+ Novo Jogo</div>
+      <button onclick="closeGameModal()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:20px">×</button>
+    </div>
+    <input type="hidden" id="gm2-id">
+    <div class="form-row">
+      <div class="form-group"><label>Nome do Jogo *</label><input type="text" id="gm2-name" placeholder="ex: Free Fire" oninput="if(!this._edited)document.getElementById('gm2-slug').value=autoSlug(this.value)"></div>
+      <div class="form-group"><label>Slug (URL) *</label><input type="text" id="gm2-slug" placeholder="ex: free-fire" oninput="this._edited=true"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Categoria Lapak <span style="color:var(--text3);font-size:10px">(code do catálogo, ex: FF)</span></label><input type="text" id="gm2-cat" placeholder="FF" style="text-transform:uppercase"></div>
+      <div class="form-group"><label>Tipo</label>
+        <select id="gm2-type" style="width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:var(--rs);padding:8px;color:var(--text);font-family:inherit;font-size:13px;outline:none">
+          <option value="dtu">⚡ DTU (Direct Top-Up)</option>
+          <option value="voucher">🎟 Gift Card / Voucher</option>
+        </select>
+      </div>
+    </div>
+    <!-- Thumbnail -->
+    <div class="form-group">
+      <label>Thumbnail <span style="color:var(--text3);font-size:10px">(imagem do card na loja — 1:1, ideal 400×400px)</span></label>
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <div style="flex:1">
+          <input type="text" id="gm2-thumb" placeholder="https://res.cloudinary.com/..." oninput="updateThumbPreview()" style="margin-bottom:6px">
+          <button class="btn btn-secondary btn-sm" onclick="uploadToCloudinary()" type="button">☁ Upload via Cloudinary</button>
+        </div>
+        <img id="gm2-thumb-preview" style="display:none;width:72px;height:72px;border-radius:10px;object-fit:cover;border:1px solid var(--border)">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Emoji (fallback sem imagem)</label><input type="text" id="gm2-emoji" placeholder="🎮" maxlength="4"></div>
+      <div class="form-group"><label>Ordem de exibição</label><input type="number" id="gm2-order" value="0" min="0"></div>
+    </div>
+    <div class="form-group"><label>Descrição curta <span style="color:var(--text3);font-size:10px">(opcional)</span></label>
+      <input type="text" id="gm2-desc" placeholder="ex: Recarregue seus diamantes Free Fire instantaneamente">
+    </div>
+    <div style="display:flex;gap:20px;margin-bottom:16px;flex-wrap:wrap">
+      <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer">
+        <input type="checkbox" id="gm2-popular"> 🔥 Popular
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer">
+        <input type="checkbox" id="gm2-featured"> ⭐ Em Destaque
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer">
+        <input type="checkbox" id="gm2-active" checked> ✓ Activo
+      </label>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <button class="btn btn-primary" onclick="saveGame()">Guardar Jogo</button>
+      <button class="btn btn-secondary" onclick="closeGameModal()">Cancelar</button>
+      <span id="gm2-msg" style="font-size:11px"></span>
+    </div>
+  </div>
+</div>
+
+<!-- ══ GRUPOS MODAL ══ -->
+<div id="group-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:8000;align-items:center;justify-content:center">
+  <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:24px;width:640px;max-width:95vw;max-height:88vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <div style="font-weight:700;font-size:14px">⛓ Grupos de SKU — <span id="gm-game-name" style="color:var(--accent2)">—</span></div>
+      <button onclick="closeGroupModal()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:20px;line-height:1">×</button>
+    </div>
+    <div style="font-size:11px;color:var(--text2);margin-bottom:16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:10px;line-height:1.7">
+      💡 Agrupa SKUs do mesmo produto de fornecedores diferentes. O <strong style="color:var(--text)">nº 1 = Principal</strong>, os restantes são <strong style="color:var(--text)">Backups</strong> por ordem. O sistema faz failover automático se o Principal ficar indisponível ou com margem negativa.
+    </div>
+    <div id="gm-groups-list" style="margin-bottom:16px"></div>
+    <div style="border-top:1px solid var(--border);padding-top:16px">
+      <div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">Criar Novo Grupo</div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label>Jogo associado <span style="color:var(--text3);font-size:10px">(liga este grupo ao jogo na loja)</span></label>
+        <select id="gm-game-sel" style="width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:var(--rs);padding:8px;color:var(--text);font-family:inherit;font-size:12px;outline:none">
+          <option value="">— Seleccionar jogo —</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label>Nome do Grupo</label>
+        <input type="text" id="gm-name" placeholder="ex: 60 + 6 Bonds">
+      </div>
+      <div class="form-group" style="margin-bottom:14px">
+        <label>Clica nos SKUs para seleccionar — 1.º clicado = Principal, 2.º = Backup 1, etc.</label>
+        <div id="gm-sku-picker" style="max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--rs);background:var(--bg)"></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="btn btn-primary btn-sm" onclick="saveGroup()">+ Criar Grupo</button>
+        <span id="gm-msg" style="font-size:11px"></span>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

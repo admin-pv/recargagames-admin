@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guia do Admin — Recarga Games</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #07080F;
+    --surface: #0E1018;
+    --surface2: #151722;
+    --border: rgba(255,255,255,0.07);
+    --text: #E8EAF0;
+    --muted: #6B7280;
+    --orange: #FF6A00;
+    --purple: #8B5CF6;
+    --green: #84CC16;
+    --gold: #F59E0B;
+    --pink: #EC4899;
+    --cyan: #22D3EE;
+    --red: #EF4444;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.65;
+  }
+
+  /* COVER */
+  .cover {
+    min-height: 220px;
+    background: linear-gradient(135deg, #0d0f1a 0%, #12091f 50%, #0d0f1a 100%);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 48px 24px 40px;
+    position: relative;
+    overflow: hidden;
+  }
+  .cover::before {
+    content: '';
+    position: absolute;
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(139,92,246,0.12) 0%, transparent 70%);
+    top: -200px; left: 50%; transform: translateX(-50%);
+    pointer-events: none;
+  }
+  .cover-label {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--purple);
+    margin-bottom: 12px;
+    font-weight: 600;
+  }
+  .cover h1 {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: clamp(28px, 5vw, 48px);
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.1;
+    margin-bottom: 12px;
+  }
+  .cover h1 span { color: var(--orange); }
+  .cover p {
+    color: var(--muted);
+    font-size: 14px;
+    max-width: 480px;
+  }
+
+  /* LAYOUT */
+  .wrapper {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  /* SECTION */
+  .section {
+    margin-bottom: 48px;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-num {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+  .section-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .section-sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 1px;
+  }
+
+  /* STEPS */
+  .steps {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .step {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .step-dot {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: var(--surface2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: 'Rajdhani', sans-serif;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .step-content {}
+  .step-title {
+    font-weight: 600;
+    font-size: 14px;
+    color: #fff;
+    margin-bottom: 2px;
+  }
+  .step-desc {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .step-desc code {
+    background: rgba(255,255,255,0.06);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    color: var(--cyan);
+  }
+
+  /* CARD GRID */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .card-icon {
+    font-size: 22px;
+    margin-bottom: 8px;
+    display: block;
+  }
+  .card-name {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+  .card-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* ALERT BOX */
+  .alert {
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 13px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 16px;
+  }
+  .alert.warn { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); color: #FCD34D; }
+  .alert.info { background: rgba(34,211,238,0.06); border: 1px solid rgba(34,211,238,0.15); color: #67E8F9; }
+  .alert.success { background: rgba(132,204,22,0.06); border: 1px solid rgba(132,204,22,0.2); color: #A3E635; }
+  .alert.danger { background: rgba(239,68,68,0.07); border: 1px solid rgba(239,68,68,0.18); color: #FCA5A5; }
+  .alert-icon { flex-shrink: 0; font-size: 15px; }
+
+  /* BADGE */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: 'Rajdhani', sans-serif;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .badge.orange { background: rgba(255,106,0,0.15); color: var(--orange); }
+  .badge.purple { background: rgba(139,92,246,0.15); color: var(--purple); }
+  .badge.green { background: rgba(132,204,22,0.12); color: var(--green); }
+  .badge.red { background: rgba(239,68,68,0.12); color: var(--red); }
+  .badge.gold { background: rgba(245,158,11,0.12); color: var(--gold); }
+
+  /* TABLE */
+  .table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th {
+    background: var(--surface2);
+    padding: 10px 14px;
+    text-align: left;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:nth-child(even) td { background: rgba(255,255,255,0.01); }
+
+  /* DIVIDER */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 32px 0;
+  }
+
+  /* URL CHIP */
+  .url-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-family: 'Courier New', monospace;
+    color: var(--cyan);
+    text-decoration: none;
+    margin: 4px 0;
+  }
+
+  /* WORKFLOW */
+  .workflow {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    position: relative;
+  }
+  .wf-item {
+    display: flex;
+    gap: 16px;
+    position: relative;
+  }
+  .wf-line {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+    width: 28px;
+  }
+  .wf-dot {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+    z-index: 1;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+  }
+  .wf-connector {
+    width: 2px;
+    flex: 1;
+    min-height: 16px;
+    background: var(--border);
+    margin: 2px 0;
+  }
+  .wf-body {
+    padding: 4px 0 20px;
+    flex: 1;
+  }
+  .wf-title {
+    font-weight: 600;
+    font-size: 14px;
+    color: #fff;
+    margin-bottom: 3px;
+  }
+  .wf-desc {
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  /* FORMULA */
+  .formula {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    color: var(--cyan);
+    line-height: 1.8;
+  }
+
+  /* TOC */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 40px;
+  }
+  .toc-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+  .toc-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 24px;
+    list-style: none;
+  }
+  .toc-list li a {
+    color: var(--text);
+    text-decoration: none;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: color 0.15s;
+  }
+  .toc-list li a:hover { color: var(--orange); }
+  .toc-list li a span { color: var(--muted); font-size: 11px; font-family: 'Rajdhani', sans-serif; font-weight: 700; }
+
+  @media (max-width: 600px) {
+    .toc-list { grid-template-columns: 1fr; }
+    .card-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="cover-label">Playvision Inc. · Recarga Games</div>
+  <h1>Guia do <span>Admin</span></h1>
+  <p>Como usar o painel de administração — do login ao produto publicado</p>
+</div>
+
+<div class="wrapper">
+
+  <!-- TOC -->
+  <div class="toc">
+    <div class="toc-title">Índice</div>
+    <ul class="toc-list">
+      <li><a href="#acesso"><span>01</span> Acesso ao Admin</a></li>
+      <li><a href="#dashboard"><span>02</span> Dashboard</a></li>
+      <li><a href="#catalogo"><span>03</span> Catálogo & Pricing</a></li>
+      <li><a href="#publicados"><span>04</span> Publicados</a></li>
+      <li><a href="#banners"><span>05</span> Banners & Conteúdo</a></li>
+      <li><a href="#jogos"><span>06</span> Jogos</a></li>
+      <li><a href="#vouchers"><span>07</span> Vouchers Bônus</a></li>
+      <li><a href="#paises"><span>08</span> Países & Preços</a></li>
+      <li><a href="#monitor"><span>09</span> Monitor & Alertas</a></li>
+      <li><a href="#fluxo"><span>10</span> Fluxo Completo</a></li>
+    </ul>
+  </div>
+
+  <!-- 01 ACESSO -->
+  <div class="section" id="acesso">
+    <div class="section-header">
+      <div class="section-num" style="background:rgba(255,106,0,0.15);color:var(--orange);">01</div>
+      <div>
+        <div class="section-title">Acesso ao Admin</div>
+        <div class="section-sub">Como entrar no painel de controle</div>
+      </div>
+    </div>
+
+    <div class="alert info">
+      <span class="alert-icon">🔗</span>
+      <div>URL do Admin: <code style="color:var(--cyan)">https://boisterous-vacherin-669006.netlify.app</code> — marque como favorito no browser.</div>
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-dot" style="background:rgba(255,106,0,0.15);color:var(--orange);">1</div>
+        <div class="step-content">
+          <div class="step-title">Abra o link do Admin</div>
+          <div class="step-desc">Acesse <code>boisterous-vacherin-669006.netlify.app</code> no browser. Você verá a tela de login.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-dot" style="background:rgba(255,106,0,0.15);color:var(--orange);">2</div>
+        <div class="step-content">
+          <div class="step-title">Digite a senha de admin</div>
+          <div class="step-desc">Use a senha configurada. O campo não mostra dicas por segurança. Após entrar, a sessão fica ativa enquanto o browser estiver aberto.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-dot" style="background:rgba(255,106,0,0.15);color:var(--orange);">3</div>
+        <div class="step-content">
+          <div class="step-title">Escolha o contexto (Marca + País)</div>
+          <div class="step-desc">No topo da sidebar, selecione a <strong>Marca</strong> (ex: Recarga Games) e o <strong>País</strong> (ex: Brasil). Todo o admin filtra por esse contexto.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="alert warn" style="margin-top:16px">
+      <span class="alert-icon">⚠️</span>
+      <div>O login é <strong>client-side</strong> — funciona para uso pessoal. Não compartilhe o link com pessoas não autorizadas.</div>
+    </div>
+  </div>
+
+  <!-- 02 DASHBOARD -->
+  <div class="section" id="dashboard">
+    <div class="section-header">
+      <div class="section-num" style="background:rgba(34,211,238,0.1);color:var(--cyan);">02</div>
+      <div>
+        <div class="section-title">Dashboard</div>
+        <div class="section-sub">Visão geral do sistema</div>
+      </div>
+    </div>
+
+    <div class="card-grid">
+      <div class="card">
+        <span class="card-icon">📦</span>
+        <div class="card-name">SKUs Publicados</div>
+        <div class="card-desc">Quantos produtos estão visíveis na loja. Clique para ir à aba Publicados.</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">🚨</span>
+        <div class="card-name">Alertas Ativos</div>
+        <div class="card-desc">Mudanças de preço ou produtos indisponíveis que precisam de atenção.</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">🌍</span>
+        <div class="card-name">Países Ativos</div>
+        <div class="card-desc">Mercados configurados (Brasil, México, Filipinas, Nigéria).</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">🔌</span>
+        <div class="card-name">Status do Proxy</div>
+        <div class="card-desc">Indica se a conexão com a API da Lapakgaming está OK.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 03 CATÁLOGO -->
+  <div class="section" id="catalogo">
+    <div class="section-header">
+      <div class="section-num" style="background:rgba(139,92,246,0.15);color:var(--purple);">03</div>
+      <div>
+        <div class="section-title">Catálogo & Pricing</div>
+        <div class="section-sub">Escolha quais produtos vender e defina preços</div>
+      </div>
+    </div>
+
+    <div class="alert info" style="margin-bottom:16px">
+      <span class="alert-icon">💡</span>
+      <div>O catálogo tem <strong>+4.800 SKUs</strong> de +235 jogos. Funciona em 2 níveis: primeiro escolhe o jogo, depois vê os SKUs desse jogo.</div>
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-dot" style="background:rgba(139,92,246,0.15);color:var(--purple);">1</div>
+        <div class="step-content">
+          <div class="step-title">Grid de Jogos</div>
+          <div class="step-desc">Ao entrar na aba, você vê os 235 jogos disponíveis na Lapak. Use a busca para filtrar. Clique em um jogo para ver seus SKUs.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-dot" style="background:rgba(139,92,246,0.15);color:var(--purple);">2</div>
+        <div class="step-content">
+          <div class="step-title">Ver SKUs do Jogo</div>
+          <div class="step-desc">Lista todos os pacotes do jogo com: Custo IDR · Custo BRL · Preço de Venda · Margem. Use ← Jogos para voltar.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-dot" style="background:rgba(139,92,246,0.15);color:var(--purple);">3</div>
+        <div class="step-content">
+          <div class="step-title">Toggle SEL — Selecionar para publicar</div>
+          <div class="step-desc">Clique no toggle <span class="badge purple">SEL</span> ao lado de um SKU para marcá-lo como selecionado. Só os SKUs selecionados aparecem na loja.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-dot" style="background:rgba(139,92,246,0.15);color:var(--purple);">4</div>
+        <div class="step-content">
+          <div class="step-title">Override de Preço (opcional)</div>
+          <div class="step-desc">Se quiser cobrar um preço diferente do calculado automaticamente, clique no campo de preço do SKU e digite o novo valor em BRL.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-dot" style="background:rgba(139,92,246,0.15);color:var(--purple);">5</div>
+        <div class="step-content">
+          <div class="step-title">Grupos de SKU (produtos com múltiplos fornecedores)</div>
+          <div class="step-desc">Quando um produto tem vários SKUs similares, aparece o botão <strong>⛓ Gerir Grupo</strong>. Use para definir Principal + Backups com failover automático.</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:20px">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-family:'Rajdhani',sans-serif;letter-spacing:1px;text-transform:uppercase;font-weight:700;">Fórmula de Preço Automático</div>
+      <div class="formula">
+Custo BRL    = Preço IDR × 0,00034 (taxa câmbio)<br>
+Venda BRL    = Custo BRL × 1,25 (margem 25%)<br>
+Net BRL      = Venda − Custo (seu lucro por venda)<br>
+Margem %     = Net ÷ Custo × 100
+      </div>
+    </div>
+  </div>
+
+  <!-- 04 PUBLICADOS -->
+  <div class="section" id="publicados">
+    <div class="section-header">
+      <div class="section-num" style="background:rgba(132,204,22,0.1);color:var(--green);">04</div>
+      <div>
+        <div class="section-title">Publicados</div>
+        <div class="section-sub">Tudo que está visível na loja agora</div>
+      </div>
+    </div>
+
+    <p style="color:var(--muted);font-size:14px;margin-bottom:16px">Esta aba mostra somente os SKUs com toggle SEL ativado. Para cada produto você vê: nome, jogo, custo, preço de venda, margem e o status atual.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-dot" style="background:rgba(132,204,22,0.1);color:var(--green);">→</div>
+        <div class="step-content">
+          <div class="step-title">Despublicar um produto</div>
+          <div class="step-desc">Clique no toggle ao lado do produto para removê-lo da loja imediatamente. Ele continua na tabela, apenas fica invisível para os clientes.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 05 BANNERS -->
+  <div class="section" id="banners">
+    <div class="section-header">
+      <div class="section-num" style="background:rgba(255,106,0,0.15);color:var(--orange);">05</div>
+      <div>
+        <div class="section-title">Conteúdo do Site — Banners & Destaques</div>
+        <div class="section-sub">Gerencie o que aparece na homepage da loja</div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:20px">
+      <div style="font-size:13px;color:var(--muted);margin-bottom:12px">A seção <strong>Conteúdo do Site</strong> tem 3 sub-abas:</div>
+      <div class="card-grid">
+        <div class="card">
+          <span class="card-icon">🖼️</span>
+          <div class="card-name">Banners</div>
+          <div class="card-desc">Imagens do carrossel hero no topo da homepage. Até N banners em rotação automática.</div>
+        </div>
+        <div class="card">
+          <span class="card-icon">⭐</span>
+          <div class="card-name">Jogos em Destaque</div>
+          <div class="card-desc">Grid de jogos populares abaixo do banner. Você escolhe quais aparecer.</div>
+        </div>
+        <div class="card">
+          <span class="card-icon">✏️</span>
+          <div class="card-name">Textos & SEO</div>
+          <div class="card-desc">Título da página, meta description, H1 e botão CTA da homepage.</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:12px">Como criar/editar um banner</div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-dot" style="background:rgba(255,106,0,0.1);color:var(--orange);">1</div>
+        <div class="step-content">
+          <div class="step-title">Clique em "Novo Banner" ou no ícone de editar (✏️)</div>
+          <div class="step-desc">O modal de edição abre com todos os campos.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-dot" style="background:rgba(255,106,0,0.1);color:var(--orange);">2</div>
+        <div class="step-content">
+          <div class="step-title">Preencha Título, Subtítulo e Texto do CTA</div>
+          <div class="step-desc">Ex: Título = <em>"Free Fire — Diamantes na hora"</em> · CTA = <em>"Comprar Diamantes"</em></div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-dot" style="background:rgba(255,106,0,0.1);color:var(--orange);">3</div>
+        <div class="step-content">
+          <div class="step-title">URL de Destino ★ (obrigatório)</div>
+          <div class="step-desc">Para onde o banner leva quando clicado. Ex: <code>/br/free-fire</code> ou <code>/br/roblox</code></div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-dot" style="background:rgba(255,106,0,0.1);color:var(--orange);">4</div>
+        <div class="step-content">
+          <div class="step-title">Cole a URL da imagem (Cloudinary)</div>
+          <div class="step-desc">Faça upload da imagem no Cloudinary (<strong>1440×480 px</strong>) e cole o link aqui. Formato ideal: JPG/WebP, menos de 150KB.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-dot" style="background:rgba(255,106,0,0.1);color:var(--orange);">5</div>
+        <div class="step-content">
+          <div class="step-title">Escolha a cor do botão CTA (bg_color)</div>
+          <div class="step-desc">Digite o hex correspondente à cor desejada para o botão do banner:</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:12px">
+      <div class="table-wrap">
+        <table>
+          <tr><th>Cor</th><th>Hex</th><th>Uso</th></tr>
+          <tr><td><span class="badge orange">● Orange</span></td><td><code>#FF6A00</code></td><td>Comprar / Loja</td></tr>
+          <tr><td><span class="badge purple">● Purple</span></td><td><code>#8B5CF6</code></td><td>Missões / Fidelidade</td></tr>
+          <tr><td><span class="badge green">● Green</span></td><td><code>#84CC16</code></td><td>Recompensa / Sucesso</td></tr>
+          <tr><td><span class="badge gold">● Gold</span></td><td><code>#F59E0B</code></td><td>VIP / Premium</td></tr>
+          <tr><td><span class="badge" style="background:rgba(236,72,153,0.12);color:var(--pink);">● Pink</span></td><td><code>#EC4899</code></td><td>Eventos / Hype</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 06 JOGOS -->
+  <div class="section" id="jogos">
+    <div class="section-header">
+      <div class="section-num" style="background:rgba(34,211,238,0.1);color:var(--cyan);">06</div>
+      <div>
+        <div class="section-title">🕹️ Jogos</div>
+        <div class="section-sub">Cadastro e gestão dos jogos disponíveis na loja</div>
+      </div>
+    </div>
+
+    <p style="color:var(--muted);font-size:14px;margin-bottom:16px">Esta aba controla quais jogos aparecem na homepage e nas páginas de jogo. Cada jogo precisa estar cadastrado aqui para ser exibido corretamente.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-dot" style="background:rgba(34,211,238,0.1);color:var(--cyan);">1</div>
+        <div class="step-content">
+          <div class="step-title">Criar um novo jogo</div>
+          <div class="step-desc">Clique em "+ Novo Jogo". Preencha: <strong>Nome</strong> (ex: Free Fire), <strong>Slug</strong> (gerado automaticamente: <code>free-fire</code>), <strong>Código Lapak</strong> (ex: <code>FF</code>), <strong>Tipo</strong> (DTU ou Gift Card).</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-dot" style="background:rgba(34,211,238,0.1);color:var(--cyan);">2</div>
+        <div class="step-content">
+          <div class="step-title">Adicionar thumbnail</div>
+          <div class="step-desc">Clique no botão de upload — abre o widget do Cloudinary com crop automático 1:1. A imagem fica salva e aparece no card do jogo na homepage.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-dot" style="background:rgba(34,211,238,0.1);color:var(--cyan);">3</div>
+        <div class="step-content">
+          <div class="step-title">Marcar como Popular / Destaque</div>
+          <div class="step-desc">Toggle <span class="badge orange">Popular</span> — aparece na seção de populares. Toggle <span class="badge gold">Destaque</span> — aparece no carrossel de destaques.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-dot" style="background:rgba(34,211,238,0.1);color:var(--cyan);">4</div>
+        <div class="step-content">
+          <div class="step-title">Ativar / Desativar</div>
+          <div class="step-desc">O toggle <span class="badge green">Ativo</span> controla se o jogo aparece na loja. Desativar esconde sem excluir os dados.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="alert info" style="margin-top:16px">
+      <span class="alert-icon">ℹ️</span>
+      <div>O <strong>Código Lapak</strong> conecta o jogo aos SKUs do catálogo. Ex: Free Fire → <code>FF</code>, PUBG Mobile → <code>PUBGM</code>, Roblox → <code>ROB</code>.</div>
+    </div>
+  </div>
+
+  <!-- 07 VOUCHERS -->
+  <div class="section" id="vouchers">
+    <div class="section-header">
+      <div class="section-num" style="background:rgba(245,158,11,0.12);color:var(--gold);">07</div>
+      <div>
+        <div class="section-title">Vouchers Bônus</div>
+        <div class="section-sub">Criar códigos promocionais para parceiros ou campanhas</div>
+      </div>
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-dot" style="background:rgba(245,158,11,0.12);color:var(--gold);">1</div>
+        <div class="step-content">
+          <div class="step-title">Defina o Prefixo</div>
+          <div class="step-desc">Ex: <code>COCA</code> → o voucher gerado ficará <code>COCA-X7K2PQ</code>. Útil para identificar a campanha/parceiro.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-dot" style="background:rgba(245,158,11,0.12);color:var(--gold);">2</div>
+        <div class="step-content">
+          <div class="step-title">Selecione os SKUs elegíveis</div>
+          <div class="step-desc">Escolha 1 ou mais SKUs. Se selecionar vários, o usuário poderá escolher qual resgatar (ex: 3 opções de pacotes de Free Fire).</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-dot" style="background:rgba(245,158,11,0.12);color:var(--gold);">3</div>
+        <div class="step-content">
+          <div class="step-title">Defina o Redeem Price</div>
+          <div class="step-desc"><code>0</code> = voucher totalmente gratuito. Valor acima de 0 = usuário paga a diferença. Ex: produto vale R$15, redeem_price = R$5 → usuário paga R$5.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-dot" style="background:rgba(245,158,11,0.12);color:var(--gold);">4</div>
+        <div class="step-content">
+          <div class="step-title">Defina a quantidade (1–500) e clique em Gerar</div>
+          <div class="step-desc">Os códigos são gerados instantaneamente e aparecem na listagem abaixo. Copie e distribua para os parceiros/usuários.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="alert success" style="margin-top:16px">
+      <span class="alert-icon">✅</span>
+      <div>Cada voucher é de <strong>uso único</strong>. Após resgatado, fica marcado como <code>used</code> com data e usuário que usou.</div>
+    </div>
+  </div>
+
+  <!-- 08 PAÍSES -->
+  <div class="section" id="paises">
+    <div class="section-header">
+      <div class="section-num" style="background:rgba(132,204,22,0.1);color:var(--green);">08</div>
+      <div>
+        <div class="section-title">Países & Preços</div>
+        <div class="section-sub">Configurar câmbio, margens e métodos de pagamento por país</div>
+      </div>
+    </div>
+
+    <div class="table-wrap" style="margin-bottom:16px">
+      <table>
+        <tr><th>País</th><th>Moeda</th><th>Taxa IDR</th><th>Margem</th><th>Imposto</th></tr>
+        <tr><td>🇧🇷 Brasil</td><td>BRL (R$)</td><td>0,00034</td><td>25%</td><td>— (sem imposto)</td></tr>
+        <tr><td>🇲🇽 México</td><td>MXN (MX$)</td><td>0,0011</td><td>25%</td><td>IVA 16% (separado)</td></tr>
+        <tr><td>🇵🇭 Filipinas</td><td>PHP (₱)</td><td>0,0038</td><td>20%</td><td>VAT 12% (incluído)</td></tr>
+        <tr><td>🇳🇬 Nigéria</td><td>NGN (₦)</td><td>0,54</td><td>20%</td><td>VAT 7,5% (separado)</td></tr>
+      </table>
+    </div>
+
+    <div class="alert warn">
+      <span class="alert-icon">📌</span>
+      <div>As taxas de câmbio são <strong>manuais</strong> — atualize periodicamente quando o câmbio IDR variar significativamente. Não há atualização automática.</div>
+    </div>
+
+    <div style="font-size:13px;color:var(--muted);margin-top:16px">Os métodos de pagamento e seus custos de transação (absorvidos pela plataforma, não repassados ao cliente) também são configurados nesta aba por país.</div>
+  </div>
+
+  <!-- 09 MONITOR -->
+  <div class="section" id="monitor">
+    <div class="section-header">
+      <div class="section-num" style="background:rgba(239,68,68,0.1);color:var(--red);">09</div>
+      <div>
+        <div class="section-title">Monitor & Alertas</div>
+        <div class="section-sub">Acompanhar saúde do catálogo em tempo real</div>
+      </div>
+    </div>
+
+    <div class="card-grid" style="margin-bottom:16px">
+      <div class="card">
+        <span class="card-icon">🔄</span>
+        <div class="card-name">Sync Automático</div>
+        <div class="card-desc">A cada 30 min o sistema verifica preços e disponibilidade dos SKUs publicados automaticamente.</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">▶️</span>
+        <div class="card-name">Sync Manual</div>
+        <div class="card-desc">Botão "▶ Sync Agora" para forçar verificação imediata fora do ciclo automático.</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">⚡</span>
+        <div class="card-name">Failover Automático</div>
+        <div class="card-desc">Se o SKU principal ficar indisponível, o sistema promove o Backup 1 automaticamente.</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">📉</span>
+        <div class="card-name">Pausa por Margem</div>
+        <div class="card-desc">Se o preço subir e a margem ficar negativa, o SKU é pausado automaticamente com alerta.</div>
+      </div>
+    </div>
+
+    <div style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:12px">Tipos de Alerta</div>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Cor</th><th>Tipo</th><th>O que significa</th></tr>
+        <tr><td>🔴 Vermelho</td><td>Indisponível / Margem Negativa</td><td>Produto fora do ar ou prejuízo — ação urgente</td></tr>
+        <tr><td>🟡 Amarelo</td><td>Preço Mudou</td><td>Custo variou — verifique se o preço de venda ainda está OK</td></tr>
+        <tr><td>🟢 Verde</td><td>Restaurado</td><td>Produto voltou a estar disponível</td></tr>
+        <tr><td>🔵 Azul</td><td>Failover</td><td>Sistema trocou para o SKU backup automaticamente</td></tr>
+      </table>
+    </div>
+
+    <div style="margin-top:12px;font-size:13px;color:var(--muted)">Na aba <strong>Alertas</strong>, você pode resolver alertas um a um ou clicar em "Resolver Todos". Alertas resolvidos são arquivados e saem do contador do Dashboard.</div>
+  </div>
+
+  <!-- 10 FLUXO -->
+  <div class="section" id="fluxo">
+    <div class="section-header">
+      <div class="section-num" style="background:rgba(139,92,246,0.15);color:var(--purple);">10</div>
+      <div>
+        <div class="section-title">Fluxo Completo — Do Zero ao Produto Publicado</div>
+        <div class="section-sub">Passo a passo para colocar um novo jogo na loja</div>
+      </div>
+    </div>
+
+    <div class="workflow">
+      <div class="wf-item">
+        <div class="wf-line">
+          <div class="wf-dot" style="background:rgba(255,106,0,0.15);color:var(--orange);">1</div>
+          <div class="wf-connector"></div>
+        </div>
+        <div class="wf-body">
+          <div class="wf-title">Cadastrar o Jogo (aba 🕹️ Jogos)</div>
+          <div class="wf-desc">Criar o jogo com nome, slug, código Lapak (ex: <code>FF</code>), thumbnail e ativar.</div>
+        </div>
+      </div>
+      <div class="wf-item">
+        <div class="wf-line">
+          <div class="wf-dot" style="background:rgba(139,92,246,0.15);color:var(--purple);">2</div>
+          <div class="wf-connector"></div>
+        </div>
+        <div class="wf-body">
+          <div class="wf-title">Selecionar SKUs (aba Catálogo & Pricing)</div>
+          <div class="wf-desc">Buscar o jogo, ver os SKUs, ativar o toggle <span class="badge purple">SEL</span> nos pacotes desejados. Ajustar preço se necessário.</div>
+        </div>
+      </div>
+      <div class="wf-item">
+        <div class="wf-line">
+          <div class="wf-dot" style="background:rgba(34,211,238,0.1);color:var(--cyan);">3</div>
+          <div class="wf-connector"></div>
+        </div>
+        <div class="wf-body">
+          <div class="wf-title">Verificar na aba Publicados</div>
+          <div class="wf-desc">Confirmar que os SKUs selecionados aparecem corretamente com preço e margem.</div>
+        </div>
+      </div>
+      <div class="wf-item">
+        <div class="wf-line">
+          <div class="wf-dot" style="background:rgba(255,106,0,0.15);color:var(--orange);">4</div>
+          <div class="wf-connector"></div>
+        </div>
+        <div class="wf-body">
+          <div class="wf-title">Criar Banner (aba Conteúdo → Banners) — opcional</div>
+          <div class="wf-desc">Criar um banner hero para o jogo com imagem 1440×480, CTA e link para a página do jogo.</div>
+        </div>
+      </div>
+      <div class="wf-item">
+        <div class="wf-line">
+          <div class="wf-dot" style="background:rgba(132,204,22,0.1);color:var(--green);">5</div>
+          <div class="wf-connector"></div>
+        </div>
+        <div class="wf-body">
+          <div class="wf-title">Verificar o Monitor</div>
+          <div class="wf-desc">Clicar em "▶ Sync Agora" para verificar se o novo SKU está disponível e com margem saudável.</div>
+        </div>
+      </div>
+      <div class="wf-item">
+        <div class="wf-line">
+          <div class="wf-dot" style="background:rgba(245,158,11,0.12);color:var(--gold);">✓</div>
+        </div>
+        <div class="wf-body">
+          <div class="wf-title" style="color:var(--gold)">Produto ao vivo na loja! 🎉</div>
+          <div class="wf-desc">Acesse <code>recargagames.com/br/</code> e veja o jogo disponível para os clientes.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- QUICK REF -->
+  <div style="margin-bottom:32px">
+    <div style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:16px;color:#fff;margin-bottom:16px">📌 Links Rápidos</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px">
+      <a class="url-chip" href="https://boisterous-vacherin-669006.netlify.app" target="_blank">🛠 Admin</a>
+      <a class="url-chip" href="https://recargagames.com/br/" target="_blank">🛒 Loja BR</a>
+      <a class="url-chip" href="https://app.netlify.com" target="_blank">☁️ Netlify</a>
+      <a class="url-chip" href="https://ashmirzgyuhspymldpfv.supabase.co" target="_blank">🗄️ Supabase</a>
+      <a class="url-chip" href="https://cloudinary.com" target="_blank">🖼️ Cloudinary</a>
+    </div>
+  </div>
+
+  <div class="alert danger">
+    <span class="alert-icon">🔒</span>
+    <div><strong>Segurança:</strong> Não compartilhe o link do admin. Não exponha a senha. Apague tokens temporários do Netlify quando não precisar mais. A API key da Lapak fica apenas no servidor Hetzner — nunca no código do frontend.</div>
+  </div>
+
+  <div style="text-align:center;margin-top:48px;color:var(--muted);font-size:12px;font-family:'Rajdhani',sans-serif;letter-spacing:1px;text-transform:uppercase">
+    Playvision Inc. · Recarga Games · Guia do Admin · Abril 2026
+  </div>
+
+</div>
+</body>
+</html>
