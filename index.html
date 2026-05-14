@@ -78,6 +78,8 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-s
 .sidebar-footer{padding:12px 14px;border-top:1px solid var(--border)}
 .sidebar-user{font-size:10px;color:var(--text3)}
 .sidebar-user strong{display:block;color:var(--text2);font-size:11px;margin-bottom:1px}
+.sidebar-logout{margin-top:10px;width:100%;background:transparent;border:1px solid var(--border);border-radius:var(--rs);color:var(--text3);font-family:inherit;font-size:11px;padding:5px 10px;cursor:pointer;text-align:center;transition:color .15s,border-color .15s}
+.sidebar-logout:hover{color:var(--text);border-color:var(--text3)}
 .env-badge{display:inline-block;font-size:9px;padding:2px 6px;border-radius:3px;margin-top:4px;font-weight:600;letter-spacing:.04em}
 .env-badge.dev{background:var(--amber-bg);color:var(--amber)}
 .env-badge.prod{background:var(--red-bg);color:var(--red)}
@@ -320,10 +322,11 @@ td.c{text-align:center}
 
     <div class="sidebar-footer">
       <div class="sidebar-user">
-        <strong id="sf-user">admin@playvision.world</strong>
+        <strong id="sf-user"></strong>
         Playvision Inc.
         <div><span class="env-badge dev" id="sf-env">DEV</span></div>
       </div>
+      <button class="sidebar-logout" onclick="doLogout()">Sair</button>
     </div>
   </aside>
 
@@ -830,12 +833,13 @@ function setEnv(e, btn) {
   btn.classList.add('active');
 }
 
-function showApp() {
+function showApp(email) {
   document.getElementById('auth-overlay').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
   document.getElementById('sf-env').textContent = ENV.toUpperCase();
   document.getElementById('sf-env').className = 'env-badge ' + ENV;
   document.getElementById('ds-env').textContent = ENV.toUpperCase();
+  if (email) document.getElementById('sf-user').textContent = email;
   initAdmin();
 }
 
@@ -869,7 +873,7 @@ async function doLogin() {
     return;
   }
 
-  showApp();
+  showApp(data.user.email);
 }
 
 async function doLogout() {
@@ -1877,7 +1881,8 @@ function notify(msg, type='info') {
     await sb.auth.signOut();
     return;
   }
-  showApp();
+  const { data: { user } } = await sb.auth.getUser();
+  showApp(user?.email);
 })();
 
 // ══ JOGOS ══
