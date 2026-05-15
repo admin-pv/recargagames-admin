@@ -78,6 +78,8 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-s
 .sidebar-footer{padding:12px 14px;border-top:1px solid var(--border)}
 .sidebar-user{font-size:10px;color:var(--text3)}
 .sidebar-user strong{display:block;color:var(--text2);font-size:11px;margin-bottom:1px}
+.sidebar-logout{margin-top:10px;width:100%;background:transparent;border:1px solid var(--border);border-radius:var(--rs);color:var(--text3);font-family:inherit;font-size:11px;padding:5px 10px;cursor:pointer;text-align:center;transition:color .15s,border-color .15s}
+.sidebar-logout:hover{color:var(--text);border-color:var(--text3)}
 .env-badge{display:inline-block;font-size:9px;padding:2px 6px;border-radius:3px;margin-top:4px;font-weight:600;letter-spacing:.04em}
 .env-badge.dev{background:var(--amber-bg);color:var(--amber)}
 .env-badge.prod{background:var(--red-bg);color:var(--red)}
@@ -225,8 +227,12 @@ td.c{text-align:center}
       <button class="env-tab" onclick="setEnv('prod',this)">Production</button>
     </div>
     <div class="auth-field">
+      <label>Email</label>
+      <input type="email" id="le" placeholder="vinicius@playvision.world" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('lp').focus()">
+    </div>
+    <div class="auth-field">
       <label>Senha Admin</label>
-      <input type="password" id="lp" placeholder="••••••••" autocomplete="off" onkeydown="if(event.key==='Enter')doLogin()">
+      <input type="password" id="lp" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
     </div>
     <button class="auth-btn" onclick="doLogin()">→ Entrar</button>
     <div class="auth-err" id="auth-err"></div>
@@ -316,10 +322,11 @@ td.c{text-align:center}
 
     <div class="sidebar-footer">
       <div class="sidebar-user">
-        <strong id="sf-user">admin@playvision.world</strong>
+        <strong id="sf-user"></strong>
         Playvision Inc.
         <div><span class="env-badge dev" id="sf-env">DEV</span></div>
       </div>
+      <button class="sidebar-logout" onclick="doLogout()">Sair</button>
     </div>
   </aside>
 
@@ -715,7 +722,7 @@ td.c{text-align:center}
           <div class="card">
             <div class="card-title">Segurança</div>
             <div style="font-size:12px;line-height:2;color:var(--text2)">
-              <div>🔐 Auth: SHA-256 client-side</div>
+              <div>🔐 Auth: Supabase Auth + admin_users</div>
               <div>🔑 API Key Lapak: Servidor Hetzner</div>
               <div>🗄️ Supabase: Publishable key + RLS</div>
               <div>🌐 Proxy: api.recargagames.com</div>
@@ -802,52 +809,81 @@ td.c{text-align:center}
 <!-- NOTIFICATION -->
 <div class="notif" id="notif"></div>
 <script src="https://upload-widget.cloudinary.com/global/all.js" async></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 // ══ CONSTANTS ══
 const SB_URL  = 'https://ashmirzgyuhspymldpfv.supabase.co';
 const SB_KEY  = 'sb_publishable_rGZqf4_vv2XzF4N3wZUwEg_rVoZUV_j';
 const PROXY   = 'https://api.recargagames.com';
-const AUTH_HASH = 'c52b9c92ae82cfd7b68a617664b4886c32ae0912fa1a66fdaa3d95e4148d538d';
-const AUTH_KEY  = 'rg_admin_auth';
 
 let ENV = 'prod';
 let BRAND = 'rg';
 let COUNTRY = 'br';
 
-// ══ AUTH ══
-async function sha256(s) {
-  const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
-  return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');
-}
+// ══ SUPABASE CLIENT (auth/identity only) ══
+// Usado apenas para signInWithPassword / signOut / getSession e
+// pra checar admin_users após login. Queries de dados continuam via
+// fetch cru com a publishable key (sbGet/sbUpsert/sbDelete abaixo).
+const sb = supabase.createClient(SB_URL, SB_KEY);
 
+// ══ AUTH ══
 function setEnv(e, btn) {
   ENV = e;
   document.querySelectorAll('.env-tab').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
 }
 
-async function doLogin() {
-  const pw   = document.getElementById('lp').value;
-  const hash = await sha256(pw);
-  if (hash === AUTH_HASH) {
-    sessionStorage.setItem(AUTH_KEY, '1');
-    document.getElementById('auth-overlay').style.display = 'none';
-    document.getElementById('app').style.display = 'flex';
-    document.getElementById('sf-env').textContent = ENV.toUpperCase();
-    document.getElementById('sf-env').className = 'env-badge ' + ENV;
-    document.getElementById('ds-env').textContent = ENV.toUpperCase();
-    initAdmin();
-  } else {
-    document.getElementById('auth-err').textContent = 'Password incorrecta';
-    document.getElementById('lp').value = '';
-    document.getElementById('lp').focus();
-  }
+function showApp(email) {
+  document.getElementById('auth-overlay').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  document.getElementById('sf-env').textContent = ENV.toUpperCase();
+  document.getElementById('sf-env').className = 'env-badge ' + ENV;
+  document.getElementById('ds-env').textContent = ENV.toUpperCase();
+  if (email) document.getElementById('sf-user').textContent = email;
+  initAdmin();
 }
 
-function doLogout() {
-  sessionStorage.removeItem(AUTH_KEY);
+async function isAdmin(userId) {
+  const { data, error } = await sb
+    .from('admin_users')
+    .select('user_id')
+    .eq('user_id', userId)
+    .maybeSingle();
+  if (error) { console.error('admin_users check failed:', error); return false; }
+  return !!data;
+}
+
+async function doLogin() {
+  const email = document.getElementById('le').value.trim();
+  const pw    = document.getElementById('lp').value;
+  document.getElementById('auth-err').textContent = '';
+
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pw });
+  if (error || !data?.user) {
+    document.getElementById('auth-err').textContent = 'Credenciais inválidas';
+    document.getElementById('lp').value = '';
+    document.getElementById('lp').focus();
+    return;
+  }
+
+  if (!(await isAdmin(data.user.id))) {
+    await sb.auth.signOut();
+    document.getElementById('auth-err').textContent = 'Usuário não autorizado';
+    document.getElementById('lp').value = '';
+    return;
+  }
+
+  showApp(data.user.email);
+}
+
+async function doLogout() {
+  await sb.auth.signOut();
   location.reload();
 }
+
+sb.auth.onAuthStateChange((event) => {
+  if (event === 'SIGNED_OUT') location.reload();
+});
 
 // ── Session check moved to after all declarations ──
 
@@ -1838,11 +1874,16 @@ function notify(msg, type='info') {
 }
 
 // ── Check session on load (after all declarations) ──
-if (sessionStorage.getItem(AUTH_KEY) === '1') {
-  document.getElementById('auth-overlay').style.display = 'none';
-  document.getElementById('app').style.display = 'flex';
-  initAdmin();
-}
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) return; // auth-overlay já visível por default (CSS)
+  if (!(await isAdmin(session.user.id))) {
+    await sb.auth.signOut();
+    return;
+  }
+  const { data: { user } } = await sb.auth.getUser();
+  showApp(user?.email);
+})();
 
 // ══ JOGOS ══
 let _editingGameId = null;
