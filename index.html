@@ -610,6 +610,53 @@ td.c{text-align:center}
             </div>
           </div>
         </div>
+
+        <!-- ══ VOUCHER DE PARCEIRO (tabelas pv_* — separado de bonus_vouchers) ══ -->
+        <div style="margin-top:28px;padding-top:20px;border-top:3px solid var(--accent)">
+          <div class="card-title" style="font-size:16px;display:flex;align-items:center;gap:10px">
+            🤝 Voucher de Parceiro
+            <span class="badge badge-accent">tabelas pv_* · não é Voucher de Fidelidade</span>
+          </div>
+          <div style="display:grid;grid-template-columns:360px 1fr;gap:16px;margin-top:14px">
+
+            <div style="align-self:start;display:flex;flex-direction:column;gap:16px">
+              <div class="card">
+                <div class="card-title">Criar lote</div>
+                <div class="form-group"><label>Nome do lote</label><input type="text" id="pv-name" placeholder="Campanha Riot Set/26"></div>
+                <div class="form-group"><label>Parceiro</label><input type="text" id="pv-partner" placeholder="Riot Games BR"></div>
+                <div class="form-group"><label>Vencimento</label><input type="date" id="pv-expires"></div>
+                <div class="form-group"><label>Prefixo (opcional)</label><input type="text" id="pv-prefix" placeholder="RLBK" maxlength="8"></div>
+                <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px">Conteúdos elegíveis (SKU + tipo + rótulo)</label>
+                <div id="pv-contents" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px"></div>
+                <button class="btn btn-secondary btn-sm" style="width:100%;margin-bottom:10px" onclick="pvAddContentRow()">+ conteúdo</button>
+                <button class="btn btn-primary" style="width:100%" onclick="pvCreateBatch()">Criar lote</button>
+              </div>
+
+              <div class="card">
+                <div class="card-title">Gerar códigos</div>
+                <div class="form-group"><label>Lote ativo</label><select id="pv-gen-batch"><option value="">—</option></select></div>
+                <div class="form-group"><label>Quantidade (1–500)</label><input type="number" id="pv-gen-qty" value="50" min="1" max="500"></div>
+                <button class="btn btn-primary" style="width:100%" onclick="pvGenerateCodes()">⚡ Gerar e inserir</button>
+              </div>
+
+              <div class="card">
+                <div class="card-title">Cancelar código individual</div>
+                <div class="form-group"><label>Código (só cancela se EMITIDO)</label><input type="text" id="pv-cancel-code" placeholder="RLBK-K7M2XQ9DPT"></div>
+                <button class="btn btn-danger" style="width:100%" onclick="pvCancelCode()">Cancelar código</button>
+              </div>
+            </div>
+
+            <div>
+              <div class="search-bar">
+                <span class="count-label" id="pv-batch-count">0 lotes</span>
+                <button class="btn btn-secondary btn-sm" style="margin-left:auto" onclick="pvLoadBatches()">↻ Atualizar</button>
+              </div>
+              <div id="pv-batches" style="display:flex;flex-direction:column;gap:12px;margin-top:12px">
+                <div class="c" style="padding:20px;color:var(--text2)">Carregando…</div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- ══ PEDIDOS ══ -->
@@ -930,7 +977,7 @@ function onTabOpen(name) {
   if (name === 'publicados') loadPublicados();
   if (name === 'site') { loadBanners(); }
   if (name === 'precos') loadPrecos();
-  if (name === 'vouchers') loadVouchers();
+  if (name === 'vouchers') { loadVouchers(); pvInit(); }
   if (name === 'pedidos') loadPedidos();
   if (name === 'monitor') { checkProxy(); loadMonitorStatus(); }
   if (name === 'alertas') loadAlertas();
@@ -1700,6 +1747,242 @@ async function generateVouchers() {
     notify(`${qty} vouchers gerados ✓`, 'ok');
     loadVouchers();
   } catch(e) { notify(`Erro: ${e.message}`, 'err'); }
+}
+
+// ══ VOUCHER DE PARCEIRO (pv_*) ══════════════════════════════════════
+// Todas as operações usam sb.from() (supabase-js) — que anexa o JWT da
+// sessão do admin. NÃO usar sbGet/sbUpsert aqui: eles mandam a publishable
+// key como Bearer e tomariam 42501 sob a RLS authenticated-only das pv_*.
+// Alfabeto de 32 chars sem ambíguos (sem 0/O/1/I). 256 % 32 == 0, então
+// (byte & 31) é uniforme — sem viés, sem rejection sampling.
+const PV_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+let pvBatchesCache = [];
+
+function pvRandomCode(prefix) {
+  const n = 10, buf = new Uint8Array(n);
+  crypto.getRandomValues(buf);                 // NUNCA Math.random
+  let s = '';
+  for (let i = 0; i < n; i++) s += PV_ALPHABET[buf[i] & 31];
+  return prefix ? `${prefix}-${s}` : s;
+}
+
+function pvContentRowHtml() {
+  return `<div class="pv-content-row" style="display:grid;grid-template-columns:1fr 76px 1fr 28px;gap:6px;align-items:center">
+    <input class="pv-c-code" type="text" placeholder="FFBV100-S22-br" style="font-size:12px">
+    <select class="pv-c-type"><option value="DTU">DTU</option><option value="PIN">PIN</option></select>
+    <input class="pv-c-label" type="text" placeholder="Free Fire 100💎" style="font-size:12px">
+    <button class="btn btn-danger btn-sm" title="remover" onclick="this.closest('.pv-content-row').remove()">×</button>
+  </div>`;
+}
+function pvAddContentRow() {
+  document.getElementById('pv-contents').insertAdjacentHTML('beforeend', pvContentRowHtml());
+}
+function pvReadContents() {
+  return [...document.querySelectorAll('#pv-contents .pv-content-row')].map(r => ({
+    product_code:  r.querySelector('.pv-c-code').value.trim(),
+    delivery_type: r.querySelector('.pv-c-type').value,
+    display_label: r.querySelector('.pv-c-label').value.trim(),
+  })).filter(c => c.product_code && c.display_label);
+}
+
+function pvInit() {
+  if (!document.querySelectorAll('#pv-contents .pv-content-row').length) pvAddContentRow();
+  pvLoadBatches();
+}
+
+async function pvCreateBatch() {
+  const name    = document.getElementById('pv-name').value.trim();
+  const partner = document.getElementById('pv-partner').value.trim();
+  const dateVal = document.getElementById('pv-expires').value;
+  let   prefix  = document.getElementById('pv-prefix').value.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+  const contents = pvReadContents();
+  if (!name || !partner)     { notify('Nome e parceiro obrigatórios', 'err'); return; }
+  if (!dateVal)              { notify('Vencimento obrigatório', 'err'); return; }
+  if (!contents.length)      { notify('Pelo menos 1 conteúdo (SKU + rótulo)', 'err'); return; }
+  const expires_at = new Date(dateVal + 'T23:59:59').toISOString();  // fim do dia escolhido
+
+  const { data: batch, error } = await sb.from('pv_batches')
+    .insert({ name, partner, expires_at, prefix: prefix || null })
+    .select().single();
+  if (error) { notify(`Erro ao criar lote: ${error.message}`, 'err'); return; }
+
+  const rows = contents.map(c => ({ ...c, batch_id: batch.id }));
+  const { error: e2 } = await sb.from('pv_batch_contents').insert(rows);
+  if (e2) {
+    // conteúdos falharam → desfaz o lote pra não deixar órfão
+    await sb.from('pv_batches').delete().eq('id', batch.id);
+    notify(`Erro nos conteúdos (lote desfeito): ${e2.message}`, 'err');
+    return;
+  }
+  notify(`Lote "${name}" criado ✓`, 'ok');
+  document.getElementById('pv-name').value = '';
+  document.getElementById('pv-partner').value = '';
+  document.getElementById('pv-prefix').value = '';
+  document.getElementById('pv-contents').innerHTML = '';
+  pvAddContentRow();
+  pvLoadBatches();
+}
+
+async function pvGenerateCodes() {
+  const batchId = document.getElementById('pv-gen-batch').value;
+  const qty = Math.min(Math.max(parseInt(document.getElementById('pv-gen-qty').value) || 0, 1), 500);
+  const batch = pvBatchesCache.find(b => b.id === batchId);
+  if (!batch) { notify('Escolha um lote ativo', 'err'); return; }
+  if (batch.status !== 'active') { notify('Lote cancelado — não gera códigos', 'err'); return; }
+  const prefix = (batch.prefix || '').trim();
+
+  // Gera qty códigos únicos entre si (Set), depois insere.
+  const set = new Set();
+  let guard = 0;
+  while (set.size < qty && guard++ < qty * 50) set.add(pvRandomCode(prefix));
+  let rows = [...set].map(code => ({ code, batch_id: batchId }));
+
+  // INSERT sem merge-duplicates: colisão de code ESTOURA (UNIQUE). Bulk é
+  // atômico → se estourar 23505, nada entrou; cai no fallback por linha,
+  // regenerando SÓ o código que colidiu. Nunca sobrescreve.
+  const { error } = await sb.from('pv_vouchers').insert(rows);
+  if (!error) {
+    notify(`${qty} códigos gerados ✓`, 'ok');
+  } else if (error.code === '23505') {
+    let inserted = 0, failed = 0;
+    for (const row of rows) {
+      let ok = false;
+      for (let t = 0; t < 6 && !ok; t++) {
+        const { error: e2 } = await sb.from('pv_vouchers').insert(row);
+        if (!e2) { ok = true; inserted++; }
+        else if (e2.code === '23505') { row.code = pvRandomCode(prefix); }  // regenera só este
+        else { notify(`Erro: ${e2.message}`, 'err'); ok = true; failed++; }
+      }
+      if (!ok) failed++;
+    }
+    notify(`${inserted} inseridos, ${failed} falhas (colisões resolvidas)`, failed ? 'err' : 'ok');
+  } else {
+    notify(`Erro ao inserir: ${error.message}`, 'err');
+    return;
+  }
+  pvLoadBatches();
+}
+
+async function pvLoadBatches() {
+  const el = document.getElementById('pv-batches');
+  el.innerHTML = `<div class="c" style="padding:20px;color:var(--text2)"><span class="spinner"></span></div>`;
+  const { data: batches, error } = await sb.from('pv_batches')
+    .select('*').order('created_at', { ascending: false });
+  if (error) { el.innerHTML = `<div style="color:var(--red);padding:12px">${esc(error.message)}</div>`; return; }
+  pvBatchesCache = batches || [];
+  const bMap = Object.fromEntries(pvBatchesCache.map(b => [b.id, b]));
+
+  const { data: vs, error: e2 } = await sb.from('pv_vouchers')
+    .select('batch_id,status').limit(20000);
+  if (e2) { el.innerHTML = `<div style="color:var(--red);padding:12px">${esc(e2.message)}</div>`; return; }
+  const now = Date.now();
+  const counts = {};
+  (vs || []).forEach(v => {
+    const c = counts[v.batch_id] || (counts[v.batch_id] = { emit:0, venc:0, proc:0, usado:0, canc:0, total:0 });
+    c.total++;
+    const b = bMap[v.batch_id];
+    const expired = b && new Date(b.expires_at).getTime() < now;
+    if      (v.status === 'EMITIDO')    expired ? c.venc++ : c.emit++;
+    else if (v.status === 'PROCESSING') c.proc++;
+    else if (v.status === 'USADO')      c.usado++;
+    else if (v.status === 'CANCELADO')  c.canc++;
+  });
+  document.getElementById('pv-batch-count').textContent = `${pvBatchesCache.length} lotes`;
+  pvRenderBatches(counts);
+  pvGenBatchOptions();
+}
+
+function pvChip(label, val, color) {
+  return `<span class="badge ${color}" style="font-weight:600">${label}: ${val}</span>`;
+}
+function pvRenderBatches(counts) {
+  const el = document.getElementById('pv-batches');
+  if (!pvBatchesCache.length) { el.innerHTML = `<div class="c" style="padding:20px;color:var(--text2)">Nenhum lote ainda</div>`; return; }
+  el.innerHTML = pvBatchesCache.map(b => {
+    const c = counts[b.id] || { emit:0, venc:0, proc:0, usado:0, canc:0, total:0 };
+    const cancelled = b.status === 'cancelled';
+    const venc = new Date(b.expires_at).toLocaleDateString('pt-BR');
+    return `<div class="card" style="${cancelled ? 'opacity:.6' : ''}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+        <div>
+          <div style="font-weight:700">${esc(b.name)} ${b.prefix ? `<span class="mono" style="color:var(--text2);font-size:12px">(${esc(b.prefix)}-)</span>` : ''}</div>
+          <div style="font-size:12px;color:var(--text2)">${esc(b.partner)} · vence ${venc} ${cancelled ? '· <span style="color:var(--red)">CANCELADO</span>' : ''}</div>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0">
+          <button class="btn btn-secondary btn-sm" onclick="pvExportCsv('${b.id}')">CSV</button>
+          ${cancelled ? '' : `<button class="btn btn-danger btn-sm" onclick="pvCancelBatch('${b.id}')">Cancelar lote</button>`}
+        </div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px">
+        ${pvChip('Emitidos', c.emit, 'badge-green')}
+        ${pvChip('Usados', c.usado, 'badge-blue')}
+        ${pvChip('Vencidos', c.venc, 'badge-amber')}
+        ${pvChip('Cancelados', c.canc, 'badge-red')}
+        ${c.proc ? pvChip('Processando', c.proc, 'badge-accent') : ''}
+        <span class="badge" style="color:var(--text2)">Total: ${c.total}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function pvGenBatchOptions() {
+  const sel = document.getElementById('pv-gen-batch');
+  const cur = sel.value;
+  const active = pvBatchesCache.filter(b => b.status === 'active');
+  sel.innerHTML = `<option value="">—</option>` + active.map(b =>
+    `<option value="${b.id}">${esc(b.name)}${b.prefix ? ` (${esc(b.prefix)}-)` : ''}</option>`).join('');
+  if (active.some(b => b.id === cur)) sel.value = cur;
+}
+
+async function pvExportCsv(batchId) {
+  const batch = pvBatchesCache.find(b => b.id === batchId);
+  const { data, error } = await sb.from('pv_vouchers')
+    .select('code,status').eq('batch_id', batchId).order('created_at', { ascending: true });
+  if (error) { notify(`Erro no CSV: ${error.message}`, 'err'); return; }
+  if (!data || !data.length) { notify('Lote sem códigos', 'err'); return; }
+  const venc = batch ? new Date(batch.expires_at).toISOString().slice(0, 10) : '';
+  const now = Date.now();
+  const expired = batch && new Date(batch.expires_at).getTime() < now;
+  const rows = [['codigo', 'status', 'vencimento']];
+  data.forEach(v => {
+    const st = (v.status === 'EMITIDO' && expired) ? 'VENCIDO' : v.status;  // VENCIDO é derivado
+    rows.push([v.code, st, venc]);
+  });
+  const csv = rows.map(r => r.map(f => `"${String(f).replace(/"/g, '""')}"`).join(',')).join('\r\n');
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `pv_${(batch?.prefix || batch?.name || 'lote').replace(/[^A-Za-z0-9_-]/g, '_')}_${venc}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  notify(`CSV: ${data.length} códigos`, 'ok');
+}
+
+async function pvCancelBatch(batchId) {
+  const batch = pvBatchesCache.find(b => b.id === batchId);
+  if (!confirm(`Cancelar o lote "${batch?.name || batchId}"?\n\nO lote vira 'cancelled' e TODOS os códigos ainda EMITIDOS viram CANCELADO. Códigos já usados não são afetados.`)) return;
+  const { error } = await sb.from('pv_batches').update({ status: 'cancelled' }).eq('id', batchId);
+  if (error) { notify(`Erro ao cancelar lote: ${error.message}`, 'err'); return; }
+  const { error: e2 } = await sb.from('pv_vouchers')
+    .update({ status: 'CANCELADO' }).eq('batch_id', batchId).eq('status', 'EMITIDO');
+  if (e2) { notify(`Lote cancelado, mas erro nos códigos: ${e2.message}`, 'err'); }
+  else notify('Lote e códigos EMITIDOS cancelados ✓', 'ok');
+  pvLoadBatches();
+}
+
+async function pvCancelCode() {
+  const code = document.getElementById('pv-cancel-code').value.trim().toUpperCase();
+  if (!code) { notify('Informe o código', 'err'); return; }
+  const { data, error } = await sb.from('pv_vouchers').select('id,status').eq('code', code).maybeSingle();
+  if (error) { notify(`Erro: ${error.message}`, 'err'); return; }
+  if (!data) { notify('Código não encontrado', 'err'); return; }
+  if (data.status !== 'EMITIDO') { notify(`Só cancela EMITIDO (está ${data.status})`, 'err'); return; }
+  const { error: e2 } = await sb.from('pv_vouchers')
+    .update({ status: 'CANCELADO' }).eq('code', code).eq('status', 'EMITIDO');
+  if (e2) { notify(`Erro ao cancelar: ${e2.message}`, 'err'); return; }
+  notify(`Código ${code} cancelado ✓`, 'ok');
+  document.getElementById('pv-cancel-code').value = '';
+  pvLoadBatches();
 }
 
 // ══ PEDIDOS ══
